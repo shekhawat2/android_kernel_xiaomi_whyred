@@ -885,6 +885,7 @@ int32_t msm_sensor_driver_probe(void *setting,
 			!!slave_info32->bypass_video_node_creation;
 		slave_info->vendor_id_info = slave_info32->vendor_id_info;
 		slave_info->vcm_id_info = slave_info32->vcm_id_info;
+		slave_info->lens_id_info = slave_info32->lens_id_info;
 		kfree(slave_info32);
 	} else
 #endif
@@ -1103,6 +1104,7 @@ CSID_TG:
 	s_ctrl->sensordata->flash_name = slave_info->flash_name;
 	s_ctrl->sensordata->vendor_id_info = &(slave_info->vendor_id_info);
 	s_ctrl->sensordata->vcm_id_info = &(slave_info->vcm_id_info);
+	s_ctrl->sensordata->lens_id_info = &(slave_info->lens_id_info);
 
 	/*
 	 * Update eeporm subdevice Id by input eeprom name
