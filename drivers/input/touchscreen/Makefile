@@ -106,8 +106,3 @@ obj-$(CONFIG_TOUCHSCREEN_COMMON)	+= tp_common.o
 
 # HMI_L6653_A01
 obj-$(CONFIG_TOUCHSCREEN_NVT_E7S) 	+= nvt_touch_e7s/
-obj-$(CONFIG_KERNEL_CUSTOM_E7S)	+= lct_tp_fm_info.o
-obj-$(CONFIG_KERNEL_CUSTOM_E7S)	+= lct_ctp_selftest.o
-obj-$(CONFIG_KERNEL_CUSTOM_E7S)	+= lct_ctp_upgrade.o
-obj-$(CONFIG_KERNEL_CUSTOM_E7S)	+= lct_if_ctp_upgrade.o
-obj-$(CONFIG_KERNEL_CUSTOM_E7S)	+= lct_tp_gesture.o
