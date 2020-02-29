@@ -66,9 +66,9 @@
 
 /* msm-pm660l.dtsi */
 &pm660l_wled {
-	/delete-property/ qcom,auto-calibration-enable;
-	qcom,fs-curr-ua = <18000>;
-	qcom,led-strings-list = [00 01];
+	/delete-property/ qcom,auto-calibration;
+	qcom,fs-current-limit = <18000>;
+	qcom,string-cfg = <3>;
 	qcom,en-cabc;
 };
 
