@@ -54,6 +54,13 @@ KBUILD_CFLAGS	+= -mno-implicit-float
 else
 KBUILD_CFLAGS	+= -mgeneral-regs-only
 endif
+
+ifeq ($(CONFIG_ARCH_SDM660), y)
+ifeq ($(cc-name),clang)
+KBUILD_CFLAGS	+= -mcpu=cortex-a53 -mtune=cortex-a53
+endif
+endif
+
 KBUILD_CFLAGS	+= $(lseinstr) $(brokengasinst) $(compat_vdso)
 KBUILD_CFLAGS	+= -fno-asynchronous-unwind-tables
 KBUILD_CFLAGS	+= $(call cc-disable-warning, psabi)
