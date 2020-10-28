@@ -230,6 +230,22 @@ static bool wcd_is_special_headset(struct wcd_mbhc *mbhc)
 					__func__);
 			break;
 		}
+#if defined(CONFIG_KERNEL_CUSTOM_E7S)
+		/*Add for selfie stick not work  tangshouxing 9/6*/
+		if (mbhc->impedance_detect) {
+			mbhc->mbhc_cb->compute_impedance(mbhc,
+			&mbhc->zl, &mbhc->zr);
+			if ((mbhc->zl > 20000) && (mbhc->zr > 20000)) {
+				pr_debug("%s: Selfie stick detected\n",__func__);
+				break;
+			} else if ((mbhc->zl < 64) && (mbhc->zr > 20000)) {
+				ret = true;
+				mbhc->micbias_enable = true;
+				pr_debug("%s: Maybe special headset detected\n",__func__);
+				break;
+			}
+		}
+#endif
 	}
 	if (is_spl_hs) {
 		pr_debug("%s: Headset with threshold found\n",  __func__);
@@ -278,7 +294,7 @@ static void wcd_mbhc_update_fsm_source(struct wcd_mbhc *mbhc,
 	};
 }
 
-static void wcd_enable_mbhc_supply(struct wcd_mbhc *mbhc,
+void wcd_enable_mbhc_supply(struct wcd_mbhc *mbhc,
 			enum wcd_mbhc_plug_type plug_type)
 {
 
@@ -309,7 +325,7 @@ static void wcd_enable_mbhc_supply(struct wcd_mbhc *mbhc,
 				wcd_enable_curr_micbias(mbhc,
 						WCD_MBHC_EN_PULLUP);
 			} else {
-				wcd_enable_curr_micbias(mbhc, WCD_MBHC_EN_CS);
+				wcd_enable_curr_micbias(mbhc, WCD_MBHC_EN_MB); /*change to vol source tsx 9/13*/
 			}
 		} else if (plug_type == MBHC_PLUG_TYPE_HEADPHONE) {
 			wcd_enable_curr_micbias(mbhc, WCD_MBHC_EN_CS);
@@ -726,10 +742,24 @@ report:
 	wcd_mbhc_find_plug_and_report(mbhc, plug_type);
 	WCD_MBHC_RSC_UNLOCK(mbhc);
 enable_supply:
+	WCD_MBHC_RSC_LOCK(mbhc);
 	if (mbhc->mbhc_cb->mbhc_micbias_control)
 		wcd_mbhc_update_fsm_source(mbhc, plug_type);
-	else
+	else {
+#if defined(CONFIG_KERNEL_CUSTOM_E7S)
+		 /*Add for selfie stick not work  tangshouxing 9/6*/
+		if (mbhc->impedance_detect) {
+			mbhc->mbhc_cb->compute_impedance(mbhc,
+			&mbhc->zl, &mbhc->zr);
+				if ((mbhc->zl > 20000) && (mbhc->zr > 20000)) {
+					pr_debug("%s:Selfie stick device,need enable btn isrc ctrl",__func__);
+					wcd_enable_mbhc_supply(mbhc, MBHC_PLUG_TYPE_HEADSET);
+				}
+		}
+#endif
 		wcd_enable_mbhc_supply(mbhc, plug_type);
+	}
+	WCD_MBHC_RSC_UNLOCK(mbhc);
 exit:
 	if (mbhc->mbhc_cb->mbhc_micbias_control &&
 	    !mbhc->micbias_enable)
@@ -882,6 +912,14 @@ static irqreturn_t wcd_mbhc_hs_rem_irq(int irq, void *data)
 				 * extension cable is still plugged in
 				 * report it as LINEOUT device
 				 */
+				if (!(hphl_sch && mic_sch)) {
+					/*
+					 * Maybe special headset,not allow report headphone
+					 */
+					pr_debug("%s: Maybe headset plug in,r1=%d,r2=%d\n", __func__,mbhc->zr,mbhc->zl);
+					if(((mbhc->zl<64)&&(mbhc->zr<64)) || ((mbhc->zl<64) && (mbhc->zr>20000)))
+						goto exit;
+				}
 				goto report_unplug;
 			} else {
 				if (!mic_sch) {
