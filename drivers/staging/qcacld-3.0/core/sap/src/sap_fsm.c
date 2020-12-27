@@ -129,7 +129,6 @@ static int sap_start_dfs_cac_timer(struct sap_context *sapContext);
  *
  * Return: string for the @event.
  */
-#ifdef WLAN_DEBUG
 static uint8_t *sap_hdd_event_to_string(eSapHddEvent event)
 {
 	switch (event) {
@@ -164,7 +163,6 @@ static uint8_t *sap_hdd_event_to_string(eSapHddEvent event)
 		return "eSAP_HDD_EVENT_UNKNOWN";
 	}
 }
-#endif
 
 /*----------------------------------------------------------------------------
  * Externalized Function Definitions
@@ -2811,7 +2809,9 @@ QDF_STATUS sap_fsm(struct sap_context *sap_ctx, ptWLAN_SAPEvent sap_event)
 
 	mac_ctx = PMAC_STRUCT(hal);
 
+#ifdef WLAN_DEBUG
 	sap_debug("state=%d handle event=%d", state_var, msg);
+#endif
 
 	switch (state_var) {
 	case SAP_INIT:

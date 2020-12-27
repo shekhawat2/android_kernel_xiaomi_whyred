@@ -481,7 +481,6 @@ error:
 	return status;
 }
 
-#ifdef WLAN_DEBUG
 static char *tdls_oper_to_str(enum nl80211_tdls_operation oper)
 {
 	switch (oper) {
@@ -497,7 +496,6 @@ static char *tdls_oper_to_str(enum nl80211_tdls_operation oper)
 		return "UNKNOWN:ERR";
 	}
 }
-#endif
 
 static enum tdls_command_type tdls_oper_to_cmd(enum nl80211_tdls_operation oper)
 {
