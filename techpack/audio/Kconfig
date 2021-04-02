@@ -172,5 +172,7 @@ config TAS2557_CODEC
 config TAS2557_MISC
 	bool "Misc Driver support"
 endif # SND_SOC_TAS2557
+config SOUND_CONTROL
+	tristate "SOUND_CONTROL"
 
 endmenu
