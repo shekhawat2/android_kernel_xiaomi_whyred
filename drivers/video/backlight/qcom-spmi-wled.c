@@ -459,7 +459,7 @@ static int wled5_set_brightness(struct wled *wled, u16 brightness)
 static int wled4_set_brightness(struct wled *wled, u16 brightness)
 {
 	int rc, i;
-	u16 low_limit = wled->max_brightness * 4 / 1000;
+	u16 low_limit = wled->max_brightness * 1 / 1000;
 	u8 string_cfg = wled->cfg.string_cfg;
 	u8 v[2];
 
