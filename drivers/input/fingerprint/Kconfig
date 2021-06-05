@@ -1,0 +1,13 @@
+menu "Fingerprint Drivers"
+
+config INPUT_FINGERPRINT
+	tristate "fingerprint driver support"
+	help
+	  say y here to enable fingerprint driver support!
+
+endmenu
+
+if INPUT_FINGERPRINT
+source "drivers/input/fingerprint/fpc/Kconfig"
+source "drivers/input/fingerprint/goodix/Kconfig"
+endif
