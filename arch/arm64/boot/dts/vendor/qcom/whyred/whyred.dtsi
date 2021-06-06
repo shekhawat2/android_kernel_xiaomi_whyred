@@ -46,6 +46,10 @@
 &soc {
 	/delete-node/ qcom,qbt1000;
 
+	qcom,msm_fastrpc {
+		/delete-property/ qcom,fastrpc-adsp-sensors-pdr;
+	};
+
 	sn_fuse: snfuse@0xA4128 {
 		compatible = "qcom,sn-fuse";
 		reg = <0x786134 0x4>,
