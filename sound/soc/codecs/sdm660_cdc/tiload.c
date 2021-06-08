@@ -38,9 +38,6 @@
 
 #include "tiload.h"
 
-/* enable debug prints in the driver */
-#define DEBUG
-
 static struct cdev *tiload_cdev;
 static int tiload_major; /* Dynamic allocation of Mjr No. */
 static int tiload_opened; /* Dynamic allocation of Mjr No. */
@@ -108,9 +105,9 @@ static ssize_t tiload_read(struct file *filp, char __user *buf,
 	int ret = 0;
 #ifdef DEBUG
 	/* int i; */
+	dev_info(pTAS2557->dev, "%s\n", __func__);
 #endif
 
-	dev_info(pTAS2557->dev, "%s\n", __func__);
 	if (count > MAX_LENGTH) {
 		dev_err(pTAS2557->dev, "Max %d bytes can be read\n", MAX_LENGTH);
 		return -EINVAL;
@@ -178,8 +175,8 @@ static ssize_t tiload_write(struct file *filp, const char __user *buf,
 	int ret = 0;
 #ifdef DEBUG
 	/* int i; */
-#endif
 	dev_info(pTAS2557->dev, "%s\n", __func__);
+#endif
 
 	if (count > MAX_LENGTH) {
 		dev_err(pTAS2557->dev, "Max %d bytes can be read\n", MAX_LENGTH);
