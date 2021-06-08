@@ -1726,7 +1726,7 @@ static int qpnp_rgb_set(struct qpnp_led_data *led)
 			RGB_LED_EN_CTL(led->base),
 			led->rgb_cfg->enable, RGB_LED_DISABLE);
 
-			dev_err(&led->pdev->dev,
+			dev_dbg(&led->pdev->dev,
 					"zjl   pwm config 333 \n");
 			rc = pwm_change_mode(led->rgb_cfg->pwm_cfg->pwm_dev,
 					PM_PWM_MODE_PWM);
