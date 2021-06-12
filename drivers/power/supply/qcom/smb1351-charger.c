@@ -1661,6 +1661,17 @@ static int smb1351_parallel_set_chg_suspend(struct smb1351_charger *chip,
 		}
 		chip->parallel_charger_suspended = false;
 	} else {
+		smb1351_enable_volatile_writes(chip);
+		/* control USB suspend via command bits */
+		rc = smb1351_masked_write(chip, VARIOUS_FUNC_REG,
+					APSD_EN_BIT | SUSPEND_MODE_CTRL_BIT,
+						SUSPEND_MODE_CTRL_BY_I2C);
+		if (rc) {
+			pr_err("Couldn't set USB suspend rc=%d\n", rc);
+			return rc;
+		}
+
+
 		rc = smb1351_usb_suspend(chip, CURRENT, true);
 		if (rc)
 			pr_debug("failed to suspend rc=%d\n", rc);
@@ -2936,6 +2947,23 @@ fail_smb1351_regulator_init:
 	return rc;
 }
 
+int hwc_check_india;
+int  hwc_check_global;
+static int __init hwc_setup(char *s)
+{
+	if (strcmp(s, "India") == 0)
+		hwc_check_india = 1;
+	else
+		hwc_check_india = 0;
+	if (strcmp(s, "Global") == 0)
+		hwc_check_global = 1;
+	else
+		hwc_check_global = 0;
+	return 1;
+}
+
+__setup("androidboot.hwc=", hwc_setup);
+
 static int smb1351_parallel_charger_probe(struct i2c_client *client,
 				const struct i2c_device_id *id)
 {
@@ -2952,6 +2980,10 @@ static int smb1351_parallel_charger_probe(struct i2c_client *client,
 	chip->dev = &client->dev;
 	chip->parallel_charger = true;
 	chip->parallel_charger_suspended = true;
+	if (hwc_check_global) {
+		pr_err("Global hasn't smb1350 ragulator,return\n");
+		return -ENODEV;
+	}
 
 	chip->usb_suspended_status = of_property_read_bool(node,
 					"qcom,charging-disabled");
@@ -3117,7 +3149,26 @@ static struct i2c_driver smb1351_charger_driver = {
 	.id_table	= smb1351_charger_id,
 };
 
-module_i2c_driver(smb1351_charger_driver);
+static int __init smb1351_charger_init(void)
+{
+	struct power_supply *pl_psy = power_supply_get_by_name("parallel");
+
+	if (pl_psy) {
+		pr_info("Another parallel driver has been registered\n");
+		return -ENOENT;
+	}
+
+	return i2c_add_driver(&smb1351_charger_driver);
+}
+
+static void __exit smb1351_charger_exit(void)
+{
+	i2c_del_driver(&smb1351_charger_driver);
+}
+
+late_initcall(smb1351_charger_init);
+module_exit(smb1351_charger_exit);
+
 
 MODULE_DESCRIPTION("smb1351 Charger");
 MODULE_LICENSE("GPL v2");

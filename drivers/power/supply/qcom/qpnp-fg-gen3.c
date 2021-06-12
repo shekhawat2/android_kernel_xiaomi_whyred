@@ -15,6 +15,7 @@
 #include <linux/iio/consumer.h>
 #include <linux/qpnp/qpnp-revid.h>
 #include <linux/qpnp/qpnp-misc.h>
+#include <linux/thermal.h>
 #include "fg-core.h"
 #include "fg-reg.h"
 
@@ -615,6 +616,40 @@ static int fg_get_battery_temp(struct fg_dev *fg, int *val)
 
 	/* Value is in Kelvin; Convert it to deciDegC */
 	temp = (temp - 273) * 10;
+	pr_debug("LCT TEMP=%d\n",temp);
+
+	if (temp < -80){
+		switch (temp){
+		case -90:
+			temp = -110;
+			break;
+		case -100:
+			temp = -120;
+			break;
+		case -110:
+			temp = -130;
+			break;
+		case -120:
+			temp = -150;
+			break;
+		case -130:
+			temp = -170;
+			break;
+		case -140:
+			temp = -190;
+			break;
+		case -150:
+			temp = -200;
+			break;
+		case -160:
+			temp = -210;
+			break;
+		default:
+			temp -= 50;
+			break;
+		};
+	}
+
 	*val = temp;
 	return 0;
 }
@@ -857,6 +892,12 @@ static int fg_get_batt_profile(struct fg_dev *fg)
 
 	data = of_get_property(profile_node, "qcom,fg-profile-data", &len);
 	if (!data) {
+		pr_err("No profile data available\n");
+		return -ENODATA;
+	}
+
+	rc = of_property_read_u32(profile_node, "qcom,battery-full-design", &fg->battery_full_design);
+	if (rc < 0) {
 		pr_err("No profile data available\n");
 		return -ENODATA;
 	}
@@ -1855,9 +1896,16 @@ static int fg_adjust_recharge_voltage(struct fg_dev *fg)
 	recharge_volt_mv = chip->dt.recharge_volt_thr_mv;
 
 	/* Lower the recharge voltage in soft JEITA */
+#if defined(CONFIG_KERNEL_CUSTOM_E7S)
+	if (fg->health == POWER_SUPPLY_HEALTH_WARM)
+		recharge_volt_mv = 4050;
+	if(fg->health == POWER_SUPPLY_HEALTH_COOL)
+		recharge_volt_mv = 4282;
+#else
 	if (fg->health == POWER_SUPPLY_HEALTH_WARM ||
 			fg->health == POWER_SUPPLY_HEALTH_COOL)
 		recharge_volt_mv -= 200;
+#endif
 
 	rc = fg_set_recharge_voltage(fg, recharge_volt_mv);
 	if (rc < 0) {
@@ -5076,7 +5124,7 @@ static int fg_parse_dt(struct fg_gen3_chip *chip)
 	if (rc < 0)
 		chip->dt.sys_term_curr_ma = DEFAULT_SYS_TERM_CURR_MA;
 	else
-		chip->dt.sys_term_curr_ma = temp;
+		chip->dt.sys_term_curr_ma = -temp;
 
 	rc = of_property_read_u32(node, "qcom,fg-chg-term-base-current", &temp);
 	if (rc < 0)
