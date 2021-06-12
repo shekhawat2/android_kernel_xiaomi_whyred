@@ -360,7 +360,10 @@ static enum power_supply_property smb2_usb_props[] = {
 	POWER_SUPPLY_PROP_PD_VOLTAGE_MAX,
 	POWER_SUPPLY_PROP_PD_VOLTAGE_MIN,
 	POWER_SUPPLY_PROP_SDP_CURRENT_MAX,
+	POWER_SUPPLY_PROP_RERUN_APSD,
 };
+
+extern bool is_poweroff_charge;
 
 static int smb2_usb_get_prop(struct power_supply *psy,
 		enum power_supply_property psp,
@@ -388,7 +391,7 @@ static int smb2_usb_get_prop(struct power_supply *psy,
 			val->intval = 0;
 		else
 			val->intval = 1;
-		if (chg->real_charger_type == POWER_SUPPLY_TYPE_UNKNOWN)
+		if ((is_poweroff_charge != true) && (chg->real_charger_type == POWER_SUPPLY_TYPE_UNKNOWN))
 			val->intval = 0;
 		break;
 	case POWER_SUPPLY_PROP_VOLTAGE_MAX:
@@ -538,6 +541,9 @@ static int smb2_usb_set_prop(struct power_supply *psy,
 		break;
 	case POWER_SUPPLY_PROP_SDP_CURRENT_MAX:
 		rc = smblib_set_prop_sdp_current_max(chg, val);
+		break;
+	case POWER_SUPPLY_PROP_RERUN_APSD:
+		rc = smblib_set_prop_rerun_apsd(chg, val);
 		break;
 	default:
 		pr_err("set prop %d is not supported\n", psp);
@@ -949,6 +955,10 @@ static enum power_supply_property smb2_batt_props[] = {
 	POWER_SUPPLY_PROP_DP_DM,
 	POWER_SUPPLY_PROP_CHARGE_COUNTER,
 	POWER_SUPPLY_PROP_FCC_STEPPER_ENABLE,
+	POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN,
+	#ifdef XIAOMI_CHARGER_RUNIN
+	POWER_SUPPLY_PROP_CHARGING_ENABLED,
+	#endif
 	POWER_SUPPLY_PROP_CHARGE_FULL,
 	POWER_SUPPLY_PROP_CYCLE_COUNT,
 };
@@ -962,6 +972,11 @@ static int smb2_batt_get_prop(struct power_supply *psy,
 	union power_supply_propval pval = {0, };
 
 	switch (psp) {
+	#ifdef XIAOMI_CHARGER_RUNIN
+	case POWER_SUPPLY_PROP_CHARGING_ENABLED:
+		val->intval = chg->charging_enabled;
+		break;
+	#endif
 	case POWER_SUPPLY_PROP_STATUS:
 		rc = smblib_get_prop_batt_status(chg, val);
 		break;
@@ -1025,7 +1040,7 @@ static int smb2_batt_get_prop(struct power_supply *psy,
 					      BATT_PROFILE_VOTER);
 		break;
 	case POWER_SUPPLY_PROP_TECHNOLOGY:
-		val->intval = POWER_SUPPLY_TECHNOLOGY_LION;
+		val->intval = POWER_SUPPLY_TECHNOLOGY_LIPO;
 		break;
 	case POWER_SUPPLY_PROP_CHARGE_DONE:
 		rc = smblib_get_prop_batt_charge_done(chg, val);
@@ -1043,6 +1058,9 @@ static int smb2_batt_get_prop(struct power_supply *psy,
 		break;
 	case POWER_SUPPLY_PROP_DP_DM:
 		val->intval = chg->pulse_cnt;
+		break;
+	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
+		rc = smblib_get_prop_battery_full_design(chg, val);
 		break;
 	case POWER_SUPPLY_PROP_RERUN_AICL:
 		val->intval = 0;
@@ -1083,6 +1101,11 @@ static int smb2_batt_set_prop(struct power_supply *psy,
 	struct smb_charger *chg = power_supply_get_drvdata(psy);
 
 	switch (prop) {
+	#ifdef XIAOMI_CHARGER_RUNIN
+	case POWER_SUPPLY_PROP_CHARGING_ENABLED:
+		rc = lct_set_prop_input_suspend(chg, val);
+		break;
+	#endif
 	case POWER_SUPPLY_PROP_INPUT_SUSPEND:
 		rc = smblib_set_prop_input_suspend(chg, val);
 		break;
@@ -1173,6 +1196,9 @@ static int smb2_batt_prop_is_writeable(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_PARALLEL_DISABLE:
 	case POWER_SUPPLY_PROP_DP_DM:
 	case POWER_SUPPLY_PROP_RERUN_AICL:
+	#ifdef XIAOMI_CHARGER_RUNIN
+	case POWER_SUPPLY_PROP_CHARGING_ENABLED:
+	#endif
 	case POWER_SUPPLY_PROP_INPUT_CURRENT_LIMITED:
 	case POWER_SUPPLY_PROP_STEP_CHARGING_ENABLED:
 	case POWER_SUPPLY_PROP_SW_JEITA_ENABLED:
@@ -1535,7 +1561,10 @@ static int smb2_init_hw(struct smb2 *chip)
 		return rc;
 	}
 
-	smblib_rerun_apsd_if_required(chg);
+	if((is_poweroff_charge == false) && (stat != 0x01)) {
+		smblib_rerun_apsd_if_required(chg);
+	}
+
 
 	/* clear the ICL override if it is set */
 	if (smblib_icl_override(chg, false) < 0) {
@@ -1570,6 +1599,32 @@ static int smb2_init_hw(struct smb2 *chip)
 	vote(chg->hvdcp_enable_votable, MICRO_USB_VOTER,
 			chg->micro_usb_mode, 0);
 
+#if defined(CONFIG_KERNEL_CUSTOM_E7S)
+	/* Operate the QC2.0 in 5V/9V mode i.e. Disable 12V */
+        rc = smblib_masked_write(chg, HVDCP_PULSE_COUNT_MAX_REG,
+                                                PULSE_COUNT_QC2P0_12V | PULSE_COUNT_QC2P0_9V,
+                                                PULSE_COUNT_QC2P0_9V);
+        if (rc < 0) {
+                dev_err(chg->dev,
+                        "Couldn't configure QC2.0 to 9V rc=%d\n", rc);
+                return rc;
+        }
+        /* Operate the QC3.0 to limit vbus to 8.0v*/
+        rc = smblib_masked_write(chg, HVDCP_PULSE_COUNT_MAX_REG,
+                                        PULSE_COUNT_QC3P0_MASK, 0xf);
+        if (rc < 0) {
+                dev_err(chg->dev,
+                        "Couldn't configure QC3.0 to 7.6V rc=%d\n", rc);
+                return rc;
+        }
+
+	/* lct reconfigure allowed voltage for HVDCP */
+	rc = smblib_write(chg, USBIN_ADAPTER_ALLOW_CFG_REG, USBIN_ADAPTER_ALLOW_5V_OR_9V_TO_12V);
+	if (rc < 0) {
+		dev_err(chg->dev, "Couldn't write to USBIN_ADAPTER_ALLOW_CFG rc=%d\n", rc);
+		return rc;
+	}
+#endif
 	/*
 	 * AICL configuration:
 	 * start from min and AICL ADC disable
@@ -1724,6 +1779,7 @@ static int smb2_init_hw(struct smb2 *chip)
 		return rc;
 	}
 
+	rc = vote(chg->chg_disable_votable, DEFAULT_VOTER, true, 0);
 	switch (chip->dt.chg_inhibit_thr_mv) {
 	case 50:
 		rc = smblib_masked_write(chg, CHARGE_INHIBIT_THRESHOLD_CFG_REG,
@@ -1752,6 +1808,7 @@ static int smb2_init_hw(struct smb2 *chip)
 		break;
 	}
 
+	rc = vote(chg->chg_disable_votable, DEFAULT_VOTER, false, 0);
 	if (rc < 0) {
 		dev_err(chg->dev, "Couldn't configure charge inhibit threshold rc=%d\n",
 			rc);
@@ -2418,6 +2475,10 @@ static int smb2_probe(struct platform_device *pdev)
 	batt_charge_type = val.intval;
 
 	device_init_wakeup(chg->dev, true);
+
+	#ifdef XIAOMI_CHARGER_RUNIN
+	chg->charging_enabled = true;
+	#endif
 
 	pr_info("QPNP SMB2 probed successfully usb:present=%d type=%d batt:present = %d health = %d charge = %d\n",
 		usb_present, chg->real_charger_type,

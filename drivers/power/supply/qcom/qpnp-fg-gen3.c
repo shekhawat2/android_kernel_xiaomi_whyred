@@ -20,6 +20,7 @@
 #include <linux/platform_device.h>
 #include <linux/iio/consumer.h>
 #include <linux/qpnp/qpnp-revid.h>
+#include <linux/thermal.h>
 #include "fg-core.h"
 #include "fg-reg.h"
 
@@ -407,6 +408,9 @@ module_param_named(
 
 static int fg_restart;
 static bool fg_sram_dump;
+int hwc_check_india;
+int hwc_check_global;
+extern bool is_poweroff_charge;
 
 /* All getters HERE */
 
@@ -652,6 +656,38 @@ static int fg_get_battery_temp(struct fg_chip *chip, int *val)
 
 	/* Value is in Kelvin; Convert it to deciDegC */
 	temp = (temp - 273) * 10;
+	if (temp < -80){
+		switch (temp){
+		case -90:
+			temp = -110;
+			break;
+		case -100:
+			temp = -120;
+			break;
+		case -110:
+			temp = -130;
+			break;
+		case -120:
+			temp = -150;
+			break;
+		case -130:
+			temp = -170;
+			break;
+		case -140:
+			temp = -190;
+			break;
+		case -150:
+			temp = -200;
+			break;
+		case -160:
+			temp = -210;
+			break;
+		default:
+			temp -= 50;
+			break;
+		};
+	}
+
 	*val = temp;
 	return 0;
 }
@@ -977,6 +1013,20 @@ out:
 	vote(chip->batt_miss_irq_en_votable, BATT_MISS_IRQ_VOTER, true, 0);
 	return rc;
 }
+static int __init hwc_setup(char *s)
+{
+	if (strcmp(s, "India") == 0)
+		hwc_check_india = 1;
+	else
+		hwc_check_india = 0;
+	if (strcmp(s, "Global") == 0)
+		hwc_check_global = 1;
+	else
+		hwc_check_global = 0;
+	return 1;
+}
+
+__setup("androidboot.hwc=", hwc_setup);
 
 static int fg_get_batt_profile(struct fg_chip *chip)
 {
@@ -1031,6 +1081,12 @@ static int fg_get_batt_profile(struct fg_chip *chip)
 
 	data = of_get_property(profile_node, "qcom,fg-profile-data", &len);
 	if (!data) {
+		pr_err("No profile data available\n");
+		return -ENODATA;
+	}
+
+	rc = of_property_read_u32(profile_node, "qcom,battery-full-design", &chip->battery_full_design);
+	if (rc < 0) {
 		pr_err("No profile data available\n");
 		return -ENODATA;
 	}
@@ -2148,9 +2204,16 @@ static int fg_adjust_recharge_voltage(struct fg_chip *chip)
 	recharge_volt_mv = chip->dt.recharge_volt_thr_mv;
 
 	/* Lower the recharge voltage in soft JEITA */
+#if defined(CONFIG_KERNEL_CUSTOM_E7S)
+	if (chip->health == POWER_SUPPLY_HEALTH_WARM)
+		recharge_volt_mv = 4050;
+	if (chip->health == POWER_SUPPLY_HEALTH_COOL)
+        recharge_volt_mv = 4282;
+#else
 	if (chip->health == POWER_SUPPLY_HEALTH_WARM ||
 			chip->health == POWER_SUPPLY_HEALTH_COOL)
 		recharge_volt_mv -= 200;
+#endif
 
 	rc = fg_set_recharge_voltage(chip, recharge_volt_mv);
 	if (rc < 0) {
@@ -4439,6 +4502,11 @@ static int fg_hw_init(struct fg_chip *chip)
 			return rc;
 		}
 	}
+	buf[0] = 0x33;
+	buf[1] = 0x3;
+	rc = fg_sram_write(chip,4,0,buf,2,FG_IMA_DEFAULT);
+	if(rc < 0)
+		pr_err("Error in configuring Sram,rc = %d\n",rc);
 
 	return 0;
 }
@@ -5095,7 +5163,7 @@ static int fg_parse_dt(struct fg_chip *chip)
 	if (rc < 0)
 		chip->dt.sys_term_curr_ma = DEFAULT_SYS_TERM_CURR_MA;
 	else
-		chip->dt.sys_term_curr_ma = temp;
+		chip->dt.sys_term_curr_ma = -temp;
 
 	rc = of_property_read_u32(node, "qcom,fg-chg-term-base-current", &temp);
 	if (rc < 0)
