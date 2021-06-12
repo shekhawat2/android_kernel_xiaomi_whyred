@@ -44,6 +44,7 @@
 #define FCC_VOTER			"FCC_VOTER"
 #define MAIN_FCC_VOTER			"MAIN_FCC_VOTER"
 #define PD_VOTER			"PD_VOTER"
+#define PL_TEMP_VOTER			"PL_TEMP_VOTER"
 
 struct pl_data {
 	int			pl_mode;
@@ -314,6 +315,10 @@ static void cp_configure_ilim(struct pl_data *chip, const char *voter, int ilim)
 	}
 }
 
+#if defined(CONFIG_KERNEL_CUSTOM_E7S)
+#define ONLY_PM660_CURRENT_UA 2000000
+#endif
+
 /*******
  * ICL *
  ********/
@@ -447,6 +452,15 @@ static void split_settled(struct pl_data *chip)
 		}
 
 		pval.intval = main_ua;
+		#if defined(CONFIG_KERNEL_CUSTOM_E7S)
+		if (chip->pl_mode == POWER_SUPPLY_PL_USBIN_USBIN) {
+			pr_debug("pl_disable_votable effective main_psy current_ua =%d \n", pval.intval);
+			if (get_effective_result_locked(chip->pl_disable_votable) && (pval.intval > ONLY_PM660_CURRENT_UA)){
+				pr_debug("pl_disable_votable effective main_psy force current_ua =%d to %d \n", pval.intval, ONLY_PM660_CURRENT_UA);
+				pval.intval = ONLY_PM660_CURRENT_UA;
+			}
+		}
+		#endif
 		/* Set ICL on main charger */
 		rc = power_supply_set_property(chip->main_psy,
 				POWER_SUPPLY_PROP_CURRENT_MAX, &pval);
@@ -1206,7 +1220,7 @@ static bool is_batt_available(struct pl_data *chip)
 	return true;
 }
 
-#define PARALLEL_FLOAT_VOLTAGE_DELTA_UV 50000
+#define PARALLEL_FLOAT_VOLTAGE_DELTA_UV 100000
 static int pl_fv_vote_callback(struct votable *votable, void *data,
 			int fv_uv, const char *client)
 {

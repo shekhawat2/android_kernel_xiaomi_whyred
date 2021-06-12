@@ -68,6 +68,8 @@ enum print_reason {
 #define FCC_STEPPER_VOTER		"FCC_STEPPER_VOTER"
 #define PD_NOT_SUPPORTED_VOTER		"PD_NOT_SUPPORTED_VOTER"
 
+#define XIAOMI_CHARGER_RUNIN
+
 #define VCONN_MAX_ATTEMPTS	3
 #define OTG_MAX_ATTEMPTS	3
 #define BOOST_BACK_STORM_COUNT	3
@@ -231,6 +233,10 @@ struct reg_info {
 	const char	*desc;
 };
 
+struct fg_dev {
+	int			battery_full_design;
+};
+
 struct smb_charger {
 	struct device		*dev;
 	char			*name;
@@ -263,6 +269,7 @@ struct smb_charger {
 	struct power_supply		*usb_main_psy;
 	struct power_supply		*usb_port_psy;
 	enum power_supply_type		real_charger_type;
+	struct power_supply             *pl_psy;
 
 	/* notifiers */
 	struct notifier_block	nb;
@@ -324,6 +331,9 @@ struct smb_charger {
 	int			fake_capacity;
 	int			fake_batt_status;
 	bool			step_chg_enabled;
+#ifdef XIAOMI_CHARGER_RUNIN
+	int			charging_enabled;
+#endif
 	bool			sw_jeita_enabled;
 	bool			is_hdc;
 	bool			chg_done;
@@ -358,6 +368,7 @@ struct smb_charger {
 	u32			wa_flags;
 	bool			cc2_detach_wa_active;
 	bool			typec_en_dis_active;
+	bool			float_rerun_apsd;
 	bool			try_sink_active;
 	int			boost_current_ua;
 	int			temp_speed_reading_count;
@@ -449,6 +460,10 @@ int smblib_get_prop_input_current_limited(struct smb_charger *chg,
 				union power_supply_propval *val);
 int smblib_set_prop_input_suspend(struct smb_charger *chg,
 				const union power_supply_propval *val);
+#ifdef XIAOMI_CHARGER_RUNIN
+int lct_set_prop_input_suspend(struct smb_charger *chg,
+				const union power_supply_propval *val);
+#endif
 int smblib_set_prop_batt_capacity(struct smb_charger *chg,
 				const union power_supply_propval *val);
 int smblib_set_prop_batt_status(struct smb_charger *chg,
@@ -551,6 +566,9 @@ int smblib_stat_sw_override_cfg(struct smb_charger *chg, bool override);
 void smblib_usb_typec_change(struct smb_charger *chg);
 int smblib_toggle_stat(struct smb_charger *chg, int reset);
 int smblib_force_ufp(struct smb_charger *chg);
+
+int smblib_set_prop_rerun_apsd(struct smb_charger *chg,
+				const union power_supply_propval *val);
 
 int smblib_init(struct smb_charger *chg);
 int smblib_deinit(struct smb_charger *chg);
