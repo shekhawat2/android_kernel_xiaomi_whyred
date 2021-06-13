@@ -650,7 +650,7 @@ static int fg_get_battery_temp(struct fg_chip *chip, int *val)
 		return rc;
 	}
 
-	pr_err("addr=0x%04x,buf1=%04x buf0=%04x\n",
+	pr_debug("addr=0x%04x,buf1=%04x buf0=%04x\n",
 		BATT_INFO_BATT_TEMP_LSB(chip),buf[1],buf[0]);
 	temp = ((buf[1] & BATT_TEMP_MSB_MASK) << 8) |
 		(buf[0] & BATT_TEMP_LSB_MASK);
@@ -658,7 +658,7 @@ static int fg_get_battery_temp(struct fg_chip *chip, int *val)
 
 	/* Value is in Kelvin; Convert it to deciDegC */
 	temp = (temp - 273) * 10;
-	pr_err("LCT TEMP=%d\n",temp);
+	pr_debug("LCT TEMP=%d\n",temp);
 
 	if (temp < -80){
 		switch (temp){
@@ -4767,7 +4767,7 @@ static irqreturn_t fg_delta_msoc_irq_handler(int irq, void *data)
 		rc = fg_get_battery_current(chip, &ibatt_now);
 
 	if (!rc)
-		pr_err("lct battery SOC:%d voltage:%duV current:%duA temp:%d id:%dK charge_status:%d charge_type:%d health:%d input_present:%d temp_qt:%d \n",
+		pr_debug("lct battery SOC:%d voltage:%duV current:%duA temp:%d id:%dK charge_status:%d charge_type:%d health:%d input_present:%d temp_qt:%d \n",
 			msoc, volt_uv, ibatt_now, batt_temp, chip->batt_id_ohms / 1000, chip->charge_status, chip->charge_type, chip->health, input_present,temp_qt);
 
 	return IRQ_HANDLED;

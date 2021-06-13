@@ -88,7 +88,7 @@ enum print_reason {
 	PR_PARALLEL	= BIT(0),
 };
 
-static int debug_mask = 0xff;
+static int debug_mask;
 module_param_named(debug_mask, debug_mask, int, S_IRUSR | S_IWUSR);
 
 #define pl_dbg(chip, reason, fmt, ...)				\
@@ -1150,7 +1150,7 @@ static void handle_main_charge_type(struct pl_data *chip)
 		pr_err("Couldn't get batt charge type rc=%d\n", rc);
 		return;
 	}
-	pr_err("chip->charge_type =%d, pval.intval=%d \n", chip->charge_type,pval.intval);
+	pr_debug("chip->charge_type =%d, pval.intval=%d \n", chip->charge_type,pval.intval);
 	/* not fast/not taper state to disables parallel */
 	if ((pval.intval != POWER_SUPPLY_CHARGE_TYPE_FAST)
 		&& (pval.intval != POWER_SUPPLY_CHARGE_TYPE_TAPER)) {
@@ -1219,7 +1219,7 @@ static void handle_settled_icl_change(struct pl_data *chip)
 		return;
 	}
 	main_limited = pval.intval;
-	pr_err("main_limited=%d, main_settled_ua=%d, chip->pl_settled_ua=%d ,total_current_ua=%d\n", main_limited, main_settled_ua, chip->pl_settled_ua, total_current_ua);
+	pr_debug("main_limited=%d, main_settled_ua=%d, chip->pl_settled_ua=%d ,total_current_ua=%d\n", main_limited, main_settled_ua, chip->pl_settled_ua, total_current_ua);
 	if ((main_limited && (main_settled_ua + chip->pl_settled_ua) < 1300000)
 			|| (main_settled_ua == 0)
 			|| ((total_current_ua >= 0) &&
