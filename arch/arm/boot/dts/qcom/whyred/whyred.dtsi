@@ -1,0 +1,130 @@
+#include "whyred-pm660.dtsi"
+#include "whyred-audio.dtsi"
+#include "whyred-camera.dtsi"
+#include "whyred-mdss.dtsi"
+#include "whyred-mtp.dtsi"
+#include "whyred-pinctrl.dtsi"
+
+/* sdm660.dtsi */
+/ {
+	pstore_reserve_mem: pstore_reserve_mem_region@0 {
+		linux,reserve-contiguous-region;
+		linux,reserve-region;
+		linux,remove-completely;
+		reg = <0x0 0xA0000000 0x0 0x00400000>;
+		label = "pstore_reserve_mem";
+	};
+};
+
+&firmware {
+	android {
+		fstab {
+			vendor {
+				fsmgr_flags = "wait";
+			};
+
+			system {
+				compatible = "android,system";
+				dev = "/dev/block/platform/soc/c0c4000.sdhci/by-name/system";
+				type = "ext4";
+				mnt_flags = "ro,barrier=1,discard";
+				fsmgr_flags = "wait";
+				status = "ok";
+			};
+		};
+	};
+};
+
+&qcom_seecom {
+	/delete-property/ qcom,fde-key-size;
+	qcom,qsee-reentrancy-support = <0>;
+};
+
+&soc {
+	/delete-node/ qcom,qbt1000;
+
+	qcom,sensor-information {
+		sensor_information22: qcom,sensor-information-22 {
+			qcom,sensor-type = "adc";
+			qcom,sensor-name = "backlight_therm";
+		};
+	};
+
+	sn_fuse: snfuse@0xA4128 {
+		compatible = "qcom,sn-fuse";
+		reg = <0x786134 0x4>,
+			<0x78607C 0x4>;
+		reg-names = "sn-base","fuse-state";
+	};
+};
+
+/* sdm660-common.dtsi */
+&usb3 {
+	extcon = <&pm660_charger>;
+	vbus_dwc3-supply = <&smb2_vbus>;
+
+	dwc3@a800000 {
+		usb-phy = <&qusb_phy0>, <&usb_nop_phy>;
+		maximum-speed = "high-speed";
+	};
+
+	qcom,usbbam@a904000 {
+		qcom,pipe2 {
+			qcom,dst-bam-pipe-index = <2>;
+		};
+	};
+};
+
+&qusb_phy0 {
+	qcom,qusb-phy-init-seq = <0xf8 0x80
+				0x63 0x84
+				0x83 0x88
+				0xc0 0x8c
+				0x30 0x08
+				0x79 0x0c
+				0x21 0x10
+				0x14 0x9c
+				0x9f 0x1c
+				0x00 0x18>;
+};
+
+&soc {
+	usb_nop_phy: usb_nop_phy {
+		compatible = "usb-nop-xceiv";
+	};
+};
+
+/* sdm660-blsp.dtsi */
+&spi_7 {
+	status = "okay";
+
+	device@1 {
+		compatible = "qcom,spi-msm-codec-slave";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		reg = <1>; /* Chip select 0 */
+		spi-max-frequency = <1000000>;
+		spi-cpol;
+	};
+};
+
+/* sdm660-regulator.dtsi */
+&rpm_bus {
+	rpm-regulator-ldoa16 {
+		status = "okay";
+		pm660_l16: regulator-l16 {
+			regulator-min-microvolt = <2800000>;
+			regulator-max-microvolt = <2800000>;
+			status = "okay";
+			regulator-always-on;
+		};
+	};
+};
+
+&pm660l_l3 {
+	regulator-always-on;
+};
+
+#include "whyred-camera-sensor-mtp.dtsi"
+#include "whyred-novatek-i2c_d2s.dtsi"
+#include "whyred-touchpad.dsi"
