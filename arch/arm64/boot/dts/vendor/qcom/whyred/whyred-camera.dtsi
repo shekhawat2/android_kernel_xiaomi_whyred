@@ -1,0 +1,366 @@
+&cam_avdd_gpio_regulator {
+	regulator-min-microvolt = <2800000>;
+	regulator-max-microvolt = <2800000>;
+};
+
+/delete-node/ &cam_actuator_regulator;
+/delete-node/ &cam_dvdd_gpio_regulator;
+
+&soc {
+	cam_rear_avdd_gpio_regulator: cam_rear_avdd_fixed_regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "cam_rear_avdd_gpio_regulator";
+		regulator-min-microvolt = <2800000>;
+		regulator-max-microvolt = <2800000>;
+		enable-active-high;
+		gpio = <&tlmm 51 0>;
+		vin-supply = <&pm660l_bob>;
+	};
+
+	qcom,csiphy@c824000 {
+		qcom,clock-rates = <0 0 0 0 0 0 310000000 0 0 269333333 0
+				 0 269000000 0 0>;
+	};
+
+	qcom,csiphy@c826000 {
+		qcom,clock-rates = <0 0 0 0 0 0 310000000 0 0 269333333 0
+				0 269000000 0 0>;
+	};
+};
+
+&actuator0 {
+	/delete-property/ cam_vaf-supply;
+	/delete-property/ qcom,cam-vreg-name;
+	/delete-property/ qcom,cam-vreg-min-voltage;
+	/delete-property/ qcom,cam-vreg-max-voltage;
+	/delete-property/ qcom,cam-vreg-op-mode;
+	qcom,cci-master = <1>;
+	gpios = <&tlmm 50 0>;
+	qcom,gpio-vaf = <0>;
+	qcom,gpio-req-tbl-num = <0>;
+	qcom,gpio-req-tbl-flags = <0>;
+	qcom,gpio-req-tbl-label = "CAM_VAF";
+	pinctrl-names = "cam_default", "cam_suspend";
+	pinctrl-0 = <&cam_actuator_vaf_active>;
+	pinctrl-1 = <&cam_actuator_vaf_suspend>;
+};
+
+/delete-node/ &actuator1;
+/delete-node/ &actuator2;
+/delete-node/ &ois0;
+/delete-node/ &tof0;
+
+&eeprom0 {
+	qcom,i2c-freq-mode = <1>;
+	qcom,slave-addr = <0x5A>;
+	qcom,num-blocks = <27>;		
+
+	//init4
+	qcom,page0 = <1 0x0A00 2 0x04 1 1>;
+	qcom,poll0 = <0 0x0 2 0 1 1>;
+	qcom,mem0 = <0 0x0 2 0 1 0>;
+
+	//set page  4  ----
+	qcom,page1 = <1 0x0A02 2 0x04 1 1>;
+	qcom,poll1 = <0 0x0 2 0 1 1>;
+	qcom,mem1 = <0 0x0 2 0 1 0>;
+
+	//read value
+	qcom,page2 = <1 0x0A00 2 0x01 1 5>;
+	qcom,poll2 = <0 0x0 2 0 1 1>;
+	qcom,mem2 = <16 0x0A34 2 0 1 0>;
+
+	//init5
+	qcom,page3 = <1 0x0A00 2 0x04 1 1>;
+	qcom,poll3 = <0 0x0 2 0 1 1>;
+	qcom,mem3 = <0 0x0 2 0 1 0>;
+
+	//set page  5  ----
+	qcom,page4 = <1 0x0A02 2 0x05 1 1>;
+	qcom,poll4 = <0 0x0 2 0 1 1>;
+	qcom,mem4 = <0 0x0 2 0 1 0>;
+
+	//read value
+	qcom,page5 = <1 0x0A00 2 0x01 1 5>;
+	qcom,poll5 = <0 0x00 2 0 1 1>;
+	qcom,mem5 = <64 0x0A04 2 0 1 0>;		
+
+	//init6
+	qcom,page6 = <1 0x0A00 2 0x04 1 1>;
+	qcom,poll6 = <0 0x0 2 0 1 1>;
+	qcom,mem6 = <0 0x0 2 0 1 0>;
+
+	//set page  6  ----
+	qcom,page7 = <1 0x0A02 2 0x06 1 1>;
+	qcom,poll7= <0 0x0 2 0 1 1>;
+	qcom,mem7 = <0 0x0 2 0 1 0>;
+
+	//read value
+	qcom,page8= <1 0x0A00 2 0x01 1 5>;
+	qcom,poll8 = <0 0x00 2 0 1 1>;
+	qcom,mem8 = <64 0x0A04 2 0 1 0>;
+
+	//init7
+	qcom,page9 = <1 0x0A00 2 0x04 1 1>;
+	qcom,poll9 = <0 0x0 2 0 1 1>;
+	qcom,mem9 = <0 0x0 2 0 1 0>;
+
+	//set page  7  ----
+	qcom,page10 = <1 0x0A02 2 0x07 1 1>;
+	qcom,poll10= <0 0x0 2 0 1 1>;
+	qcom,mem10 = <0 0x0 2 0 1 0>;
+
+	//set read mode of nvm
+	qcom,page11 = <1 0x0A00 2 0x01 1 5>;
+	qcom,poll11 = <0 0x00 2 0 1 1>;
+	qcom,mem11 = <64 0x0A04 2 0 1 0>;
+
+	//init8
+	qcom,page12 = <1 0x0A00 2 0x04 1 1>;
+	qcom,poll12 = <0 0x0 2 0 1 1>;
+	qcom,mem12 = <0 0x0 2 0 1 0>;
+
+	//set page  8  ----
+	qcom,page13 = <1 0x0A02 2 0x08 1 1>;
+	qcom,poll13= <0 0x0 2 0 1 1>;
+	qcom,mem13 = <0 0x0 2 0 1 0>;
+
+	//set read mode of nvm
+	qcom,page14 = <1 0x0A00 2 0x01 1 5>;
+	qcom,poll14 = <0 0x00 2 0 1 1>;
+	qcom,mem14 = <64 0x0A04 2 0 1 0>;
+
+	//init9
+	qcom,page15 = <1 0x0A00 2 0x04 1 1>;
+	qcom,poll15 = <0 0x0 2 0 1 1>;
+	qcom,mem15 = <0 0x0 2 0 1 0>;
+
+	//set page  9  ----
+	qcom,page16 = <1 0x0A02 2 0x09 1 1>;
+	qcom,poll16= <0 0x0 2 0 1 1>;
+	qcom,mem16 = <0 0x0 2 0 1 0>;
+
+	//set read mode of nvm
+	qcom,page17 = <1 0x0A00 2 0x01 1 5>;
+	qcom,poll17 = <0 0x00 2 0 1 1>;
+	qcom,mem17 = <64 0x0A04 2 0 1 0>;
+
+	//init10
+	qcom,page18 = <1 0x0A00 2 0x04 1 1>;
+	qcom,poll18 = <0 0x0 2 0 1 1>;
+	qcom,mem18 = <0 0x0 2 0 1 0>;
+
+	//set page  10  ----
+	qcom,page19 = <1 0x0A02 2 0x0A 1 1>;
+	qcom,poll19= <0 0x0 2 0 1 1>;
+	qcom,mem19 = <0 0x0 2 0 1 0>;
+
+	//set read mode of nvm
+	qcom,page20 = <1 0x0A00 2 0x01 1 5>;
+	qcom,poll20 = <0 0x0 2 0 1 1>;
+	qcom,mem20 = <24 0x0A04 2 0 1 0>;		
+
+	//init14
+	qcom,page21= <1 0x0A00 2 0x04 1 1>;
+	qcom,poll21 = <0 0x0 2 0 1 1>;
+	qcom,mem21 = <0 0x0 2 0 1 0>;
+
+	//set page  14  ----
+	qcom,page22 = <1 0x0A02 2 0x0E 1 1>;
+	qcom,poll22= <0 0x0 2 0 1 1>;
+	qcom,mem22 = <0 0x0 2 0 1 0>;
+
+	//set read mode of nvm
+	qcom,page23 = <1 0x0A00 2 0x01 1 5>;
+	qcom,poll23 = <0 0x0 2 0 1 1>;
+	qcom,mem23 = <64 0x0A04 2 0 1 0>;
+
+	//init15
+	qcom,page24 = <1 0x0A00 2 0x04 1 1>;
+	qcom,poll24 = <0 0x0 2 0 1 1>;
+	qcom,mem24 = <0 0x0 2 0 1 0>;
+
+	//set page  15  ----
+	qcom,page25 = <1 0x0A02 2 0x0F 1 1>;
+	qcom,poll25= <0 0x0 2 0 1 1>;
+	qcom,mem25 = <0 0x0 2 0 1 0>;
+
+	//set read mode of nvm
+	qcom,page26 = <1 0x0A00 2 0x01 1 5>;
+	qcom,poll26 = <0 0x0 2 0 1 1>;
+	qcom,mem26 = <15 0x0A04 2 0 1 0>;
+
+	cam_vana-supply = <&cam_rear_avdd_gpio_regulator>;
+	cam_vdig-supply = <&cam_rear_dvdd_gpio_regulator>;
+	pinctrl-0 = <&cam_sensor_mclk3_active
+			 &cam_sensor_front_iris_active>;
+	pinctrl-1 = <&cam_sensor_mclk3_suspend
+			 &cam_sensor_front_iris_suspend>;
+	gpios = <&tlmm 35 0>,
+		<&tlmm 52 0>,
+		<&tlmm 45 0>;
+	qcom,cam-power-seq-type = "sensor_gpio","sensor_vreg","sensor_vreg","sensor_gpio",
+			"sensor_vreg","sensor_clk","sensor_gpio";
+	qcom,cam-power-seq-val = "sensor_gpio_reset","cam_vana","cam_vdig","sensor_gpio_vaf",
+			"cam_vio","sensor_cam_mclk","sensor_gpio_reset";
+	qcom,cam-power-seq-cfg-val = <0 1 1 1 1 24000000 1>;
+	qcom,cam-power-seq-delay = <1 5 5 5 5 1 10>;
+	clocks = <&clock_mmss MCLK3_CLK_SRC>,
+			<&clock_mmss MMSS_CAMSS_MCLK3_CLK>;
+};
+
+&eeprom1 {
+	qcom,i2c-freq-mode = <1>;
+	qcom,slave-addr = <0xa8>;
+	qcom,num-blocks = <1>;
+
+	qcom,page0 = <0 0x0000 2 0x00 1 0>;
+	qcom,poll0 = <0 0x0 2 0x0 1 0>;
+	qcom,mem0 = <7158 0x0000 2 0x0 1 0>;
+
+	cam_vana-supply = <&cam_rear_avdd_gpio_regulator>;
+	cam_vdig-supply = <&cam_rear_dvdd_gpio_regulator>;
+	pinctrl-0 = <&cam_sensor_mclk0_active
+			 &cam_sensor_rear2_active>;
+	pinctrl-1 = <&cam_sensor_mclk0_suspend
+			 &cam_sensor_rear2_suspend>;
+	gpios = <&tlmm 32 0>,
+		<&tlmm 48 0>,
+		<&tlmm 50 0>;
+		qcom,gpio-vaf = <2>;
+	qcom,gpio-req-tbl-num = <0 1 2>;
+	qcom,gpio-req-tbl-flags = <1 0 0>;
+	qcom,gpio-req-tbl-label = "CAMIF_MCLK0",
+				"CAM_RESET0",
+				"CAM_VAF";
+
+	qcom,cam-power-seq-type = "sensor_gpio","sensor_vreg","sensor_vreg","sensor_gpio","sensor_vreg",
+			"sensor_clk","sensor_gpio";
+	qcom,cam-power-seq-val = "sensor_gpio_reset", "cam_vdig","cam_vio", "sensor_gpio_vaf","cam_vana",
+			"sensor_cam_mclk", "sensor_gpio_reset";
+	qcom,cam-power-seq-cfg-val = <0 1 1 1 1 24000000 1>;
+	qcom,cam-power-seq-delay =    <5 5 0 5 5 5 5>;
+	
+	clocks = <&clock_mmss MCLK0_CLK_SRC>,
+			<&clock_mmss MMSS_CAMSS_MCLK0_CLK>;
+	qcom,clock-rates = <19200000 0>;
+};
+
+&eeprom2 {
+	qcom,i2c-freq-mode = <1>;
+	qcom,slave-addr = <0xa0>;
+	qcom,num-blocks = <1>;
+
+	qcom,page0 = <0 0x0000 2 0x00 1 0>;
+	qcom,poll0 = <0 0x0 2 0x0 1 0>;
+	qcom,mem0 = <6389 0x0000 2 0x0 1 0>;
+
+	/delete-property/ cam_vdig-supply;
+	cam_vana-supply = <&cam_rear_avdd_gpio_regulator>;
+	cam_vdig-supply = <&cam_rear_dvdd_gpio_regulator>;
+	qcom,cam-vreg-name = "cam_vio", "cam_vana";
+	pinctrl-names = "cam_default", "cam_suspend";
+	pinctrl-0 = <&cam_sensor_mclk1_active
+			 &cam_sensor_front_active
+			 &cam_sensor_eldo3_default>;
+	pinctrl-1 = <&cam_sensor_mclk1_suspend
+			 &cam_sensor_front_suspend>;
+	gpios = <&tlmm 33 0>,
+		<&tlmm 47 0>,
+		<&pm660l_gpios 5 0>;
+	/delete-property/ qcom,gpio-vana;
+	/delete-property/ qcom,gpio-vaf;
+	qcom,gpio-vdig = <2>;
+	qcom,gpio-req-tbl-num = <0 1 2>;
+	qcom,gpio-req-tbl-flags = <1 0 0>;
+	qcom,gpio-req-tbl-label = "CAMIF_MCLK1",
+				"CAM_RESET1",
+				"CAM_VDIG";
+	qcom,cam-power-seq-type = "sensor_gpio","sensor_gpio","sensor_vreg","sensor_gpio","sensor_vreg",
+			"sensor_clk","sensor_gpio","sensor_gpio";
+	qcom,cam-power-seq-val = "sensor_gpio_reset","sensor_gpio_standby","cam_vana", "sensor_gpio_vdig","cam_vio",
+			"sensor_cam_mclk","sensor_gpio_reset","sensor_gpio_standby";
+	qcom,cam-power-seq-cfg-val = <0 0 1 1 0 24000000 1 1>;
+	qcom,cam-power-seq-delay = <1 1 0 0 0 1 1 1>;
+};	
+
+&cci {
+	qcom,camera@0 {
+		/delete-property/ qcom,led-flash-src;
+		/delete-property/ qcom,actuator-src;
+		/delete-property/ qcom,ois-src;
+		qcom,csiphy-sd-index = <1>;
+		qcom,csid-sd-index = <1>;
+		qcom,mount-angle = <90>;
+		cam_vana-supply = <&cam_avdd_gpio_regulator>;
+		cam_vdig-supply = <&cam_rear_dvdd_gpio_regulator>;
+		pinctrl-0 = <&cam_sensor_mclk3_active
+				 &cam_sensor_front_iris_active>;
+		pinctrl-1 = <&cam_sensor_mclk3_suspend
+				 &cam_sensor_front_iris_suspend>;
+		gpios = <&tlmm 35 0>,
+			<&tlmm 52 0>,
+			<&tlmm 45 0>;
+		qcom,gpio-vdig = <2>;
+		qcom,gpio-req-tbl-num = <0 1 2>;
+		qcom,gpio-req-tbl-flags = <1 0 0>;
+		qcom,gpio-req-tbl-label = "CAMIF_MCLK0",
+					"CAM_RESET0",
+					"CAM_VDIG";
+		clocks = <&clock_mmss MCLK3_CLK_SRC>,
+				<&clock_mmss MMSS_CAMSS_MCLK3_CLK>;
+	};
+
+	qcom,camera@1 {
+		/delete-property/ qcom,ois-src;
+		qcom,csiphy-sd-index = <0>;
+		qcom,csid-sd-index = <0>;
+		qcom,mount-angle = <90>;
+		qcom,actuator-src = <&actuator0>;
+		cam_vana-supply = <&cam_rear_avdd_gpio_regulator>;
+		cam_vdig-supply = <&cam_rear_dvdd_gpio_regulator>;
+		pinctrl-0 = <&cam_sensor_mclk0_active
+				 &cam_sensor_rear2_active>;
+		pinctrl-1 = <&cam_sensor_mclk0_suspend
+				 &cam_sensor_rear2_suspend>;
+		gpios = <&tlmm 32 0>,
+			<&tlmm 48 0>,
+			<&tlmm 50 0>;
+		qcom,gpio-vaf = <2>;
+		qcom,gpio-req-tbl-num = <0 1 2>;
+		qcom,gpio-req-tbl-flags = <1 0 0>;
+		qcom,gpio-req-tbl-label = "CAMIF_MCLK0",
+					"CAM_RESET0",
+					"CAM_VAF";
+		clocks = <&clock_mmss MCLK0_CLK_SRC>,
+				<&clock_mmss MMSS_CAMSS_MCLK0_CLK>;
+	};
+
+	qcom,camera@2 {
+		qcom,mount-angle = <270>;
+		qcom,led-flash-src = <&led_flash1>;
+		/delete-property/ qcom,actuator-src;
+		cam_vana-supply = <&cam_rear_avdd_gpio_regulator>;
+		cam_vdig-supply = <&cam_rear_dvdd_gpio_regulator>;
+		qcom,cam-vreg-name = "cam_vio", "cam_vana";
+		pinctrl-names = "cam_default", "cam_suspend";
+		pinctrl-0 = <&cam_sensor_mclk1_active
+				 &cam_sensor_front_active
+				 &cam_sensor_eldo3_default>;
+		pinctrl-1 = <&cam_sensor_mclk1_suspend
+				 &cam_sensor_front_suspend>;
+		gpios = <&tlmm 33 0>,
+			<&tlmm 47 0>,
+			<&pm660l_gpios 5 0>;
+		qcom,gpio-vdig = <2>;
+		qcom,gpio-req-tbl-num = <0 1 2>;
+		qcom,gpio-req-tbl-flags = <1 0 0>;
+		qcom,gpio-req-tbl-label = "CAMIF_MCLK1",
+					"CAM_RESET1",
+					"CAM_VDIG";
+		clocks = <&clock_mmss MCLK1_CLK_SRC>,
+			<&clock_mmss MMSS_CAMSS_MCLK1_CLK>;
+	};
+
+	/delete-node/ qcom,camera@3;
+};
