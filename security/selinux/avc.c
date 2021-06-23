@@ -977,16 +977,19 @@ static noinline struct avc_node *avc_compute_av(u32 ssid, u32 tsid,
 	return avc_insert(ssid, tsid, tclass, avd, xp_node);
 }
 
+extern bool fakeselenforce;
 static noinline int avc_denied(u32 ssid, u32 tsid,
 				u16 tclass, u32 requested,
 				u8 driver, u8 xperm, unsigned flags,
 				struct av_decision *avd)
 {
+	if (!fakeselenforce) {
 	if (flags & AVC_STRICT)
 		return -EACCES;
 
 	if (selinux_enforcing && !(avd->flags & AVD_FLAGS_PERMISSIVE))
 		return -EACCES;
+	}
 
 	avc_update_node(AVC_CALLBACK_GRANT, requested, driver, xperm, ssid,
 				tsid, tclass, avd->seqno, NULL, flags);
