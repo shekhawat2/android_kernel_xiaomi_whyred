@@ -11,70 +11,70 @@ if QCA_CLD_WLAN != n
 
 config QCACLD_WLAN_LFR3
 	bool "Enable the WLAN Legacy Fast Roaming feature Version 3"
-	default n
+	default y
 
 config PRIMA_WLAN_11AC_HIGH_TP
 	bool "Enable the Prima WLAN 802.11ac High Throughput option (depends upon kernel support)"
-	default n
+	default y
 
 config WLAN_FEATURE_11W
 	bool "Enable the WLAN 802.11w Protected Management Frames feature"
-	default n
+	default y
 
 config WLAN_FEATURE_LPSS
 	bool "Enable the WLAN LPSS feature"
-	default n
+	default y
 
 config QCOM_VOWIFI_11R
 	bool "Enable Fast Transition (11r) feature"
-	default n
+	default y
 
 config QCACLD_FEATURE_NAN
 	bool "Enable NAN feature"
-	default n
+	default y
 
 config WLAN_FEATURE_NAN_DATAPATH
 	bool "Enable NaN Data Path feature"
 	depends on QCACLD_FEATURE_NAN
-	default n
+	default y
 
 config QCACLD_FEATURE_GREEN_AP
 	bool "Enable Green AP feature"
-	default n
+	default y
 
 config QCACLD_FEATURE_METERING
 	bool "Enable metering feature"
-	default n
+	default y
 
 config HELIUMPLUS
 	bool "Enable Beeliner based descriptor structures for Helium"
-	default n
+	default y
 
 config 64BIT_PADDR
 	bool "Enable 37-bit physical/bus addresses"
 	depends on HELIUMPLUS
-	default n
+	default y
 
 config QCOM_TDLS
 	bool "Enable TDLS feature"
-	default n
+	default y
 
 config QCOM_LTE_COEX
 	bool "Enable QCOM LTE Coex feature"
-	default n
+	default y
 
 config MPC_UT_FRAMEWORK
 	bool "Enable Unit test framework for multiport concurrency"
-	default n
+	default y
 
 config WLAN_OFFLOAD_PACKETS
 	bool "Enable offload packets feature"
-	default n
+	default y
 
 config FEATURE_TSO
 	bool "Enable TCP Segmentation Offload"
 	depends on HELIUMPLUS
-	default n
+	default y
 
 config FEATURE_TSO_DEBUG
 	bool "Enable TCP Segmentation Offload with debug"
@@ -83,11 +83,11 @@ config FEATURE_TSO_DEBUG
 
 config WLAN_FASTPATH
 	bool "Enable fastpath for datapackets"
-	default n
+	default y
 
 config WLAN_NAPI
 	bool "Enable NAPI - datapath rx"
-	default n
+	default y
 
 config WLAN_NAPI_DEBUG
        bool "Enable debug logging on NAPI"
@@ -96,7 +96,7 @@ config WLAN_NAPI_DEBUG
 
 config WLAN_TX_FLOW_CONTROL_V2
 	bool "Enable tx flow control version:2"
-	default n
+	default y
 
 config WLAN_LRO
 	bool "Enable Large Receive Offload"
@@ -106,23 +106,23 @@ config WLAN_LRO
 
 config WLAN_SYNC_TSF
 	bool "Enable QCOM sync multi devices tsf feature"
-	default n
+	default y
 
 config LFR_SUBNET_DETECTION
 	bool "Enable LFR Subnet Change Detection"
-	default n
+	default y
 
 config MCC_TO_SCC_SWITCH
 	bool "Enable MCC to SCC Switch Logic"
-	default n
+	default y
 
 config QCACLD_WLAN_LFR2
 	bool "Enable the WLAN Legacy Fast Roaming feature Version 2"
-	default n
+	default y
 
 config WLAN_FEATURE_DISA
 	bool "Enable DISA certification feature"
-	default n
+	default y
 
 config WLAN_FEATURE_OWE
 	bool "Enable OWE feature"
@@ -138,7 +138,7 @@ config WLAN_FEATURE_OWE
 
 config ICMP_DISABLE_PS
 	bool "Enable ICMP packet disable powersave feature"
-	default n
+	default y
 
 config BUILD_TIMESTAMP
 	bool "Embed timestamp in wlan version"
@@ -150,10 +150,10 @@ config WLAN_FEATURE_SARV1_TO_SARV2
 
 config WLAN_FEATURE_FILS
 	bool "Enable FILS_SK feature"
-	default n
+	default y
 
 config WLAN_FEATURE_PKT_CAPTURE
 	bool "Enable packet capture feature"
-	default n
+	default y
 
 endif # QCA_CLD_WLAN
