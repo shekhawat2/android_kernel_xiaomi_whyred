@@ -875,8 +875,7 @@ static int ntfs_init_from_boot(struct super_block *sb, u32 sector_size,
 	rec->total = cpu_to_le32(sbi->record_size);
 	((struct ATTRIB *)Add2Ptr(rec, ao))->type = ATTR_END;
 
-	if (sbi->cluster_size < PAGE_SIZE)
-		sb_set_blocksize(sb, sbi->cluster_size);
+	sb_set_blocksize(sb, min_t(u32, sbi->cluster_size, PAGE_SIZE));
 
 	sbi->block_mask = sb->s_blocksize - 1;
 	sbi->blocks_per_cluster = sbi->cluster_size >> sb->s_blocksize_bits;
@@ -889,9 +888,11 @@ static int ntfs_init_from_boot(struct super_block *sb, u32 sector_size,
 	if (clusters >= (1ull << (64 - sbi->cluster_bits)))
 		sbi->maxbytes = -1;
 	sbi->maxbytes_sparse = -1;
+	sb->s_maxbytes = MAX_LFS_FILESIZE;
 #else
 	/* Maximum size for sparse file. */
 	sbi->maxbytes_sparse = (1ull << (sbi->cluster_bits + 32)) - 1;
+	sb->s_maxbytes = 0xFFFFFFFFull << sbi->cluster_bits;
 #endif
 
 	err = 0;
@@ -957,19 +958,11 @@ static int ntfs_fill_super(struct super_block *sb, void *data, int silent)
 			~(u64)(sbi->discard_granularity - 1);
 	}
 
-	sb_set_blocksize(sb, PAGE_SIZE);
-
 	/* Parse boot. */
 	err = ntfs_init_from_boot(sb, rq ? queue_logical_block_size(rq) : 512,
 				  bdev->bd_inode->i_size);
 	if (err)
 		return err;
-
-#ifdef CONFIG_NTFS3_64BIT_CLUSTER
-	sb->s_maxbytes = MAX_LFS_FILESIZE;
-#else
-	sb->s_maxbytes = 0xFFFFFFFFull << sbi->cluster_bits;
-#endif
 
 	mutex_init(&sbi->compress.mtx_lznt);
 #ifdef CONFIG_NTFS3_LZX_XPRESS
