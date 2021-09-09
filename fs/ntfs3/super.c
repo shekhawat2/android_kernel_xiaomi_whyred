@@ -1349,11 +1349,6 @@ load_root:
 out:
 	iput(inode);
 
-	if (sb->s_root) {
-		d_drop(sb->s_root);
-		sb->s_root = NULL;
-	}
-
 	put_ntfs(sbi);
 
 	sb->s_fs_info = NULL;
