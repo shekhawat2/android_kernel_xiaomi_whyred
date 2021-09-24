@@ -478,12 +478,6 @@ out:
 }
 
 #ifdef CONFIG_NTFS3_FS_POSIX_ACL
-static inline void ntfs_posix_acl_release(struct posix_acl *acl)
-{
-	if (acl && refcount_dec_and_test(&acl->a_refcount))
-		kfree(acl);
-}
-
 static struct posix_acl *ntfs_get_acl_ex(struct user_namespace *mnt_userns,
 					 struct inode *inode, int type,
 					 int locked)
@@ -644,7 +638,7 @@ static int ntfs_xattr_get_acl(struct user_namespace *mnt_userns,
 		return -ENODATA;
 
 	err = posix_acl_to_xattr(mnt_userns, acl, buffer, size);
-	ntfs_posix_acl_release(acl);
+	posix_acl_release(acl);
 
 	return err;
 }
@@ -681,7 +675,7 @@ static int ntfs_xattr_set_acl(struct user_namespace *mnt_userns,
 	err = ntfs_set_acl(mnt_userns, inode, acl, type);
 
 release_and_out:
-	ntfs_posix_acl_release(acl);
+	posix_acl_release(acl);
 	return err;
 }
 
