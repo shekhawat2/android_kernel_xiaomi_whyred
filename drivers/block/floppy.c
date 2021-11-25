@@ -848,14 +848,17 @@ static void reset_fdc_info(int mode)
 /* selects the fdc and drive, and enables the fdc's input/dma. */
 static void set_fdc(int drive)
 {
+	unsigned int new_fdc = fdc;
+
 	if (drive >= 0 && drive < N_DRIVE) {
-		fdc = FDC(drive);
+		new_fdc = FDC(drive);
 		current_drive = drive;
 	}
-	if (fdc != 1 && fdc != 0) {
+	if (new_fdc >= N_FDC) {
 		pr_info("bad fdc value\n");
 		return;
 	}
+	fdc = new_fdc;
 	set_dor(fdc, ~0, 8);
 #if N_FDC > 1
 	set_dor(1 - fdc, ~8, 0);
@@ -867,7 +870,7 @@ static void set_fdc(int drive)
 }
 
 /* locks the driver */
-static int lock_fdc(int drive, bool interruptible)
+static int lock_fdc(int drive)
 {
 	if (WARN(atomic_read(&usage_count) == 0,
 		 "Trying to lock fdc while usage count=0\n"))
@@ -2177,7 +2180,7 @@ static int do_format(int drive, struct format_descr *tmp_format_req)
 {
 	int ret;
 
-	if (lock_fdc(drive, true))
+	if (lock_fdc(drive))
 		return -EINTR;
 
 	set_floppy(drive);
@@ -2964,7 +2967,7 @@ static int user_reset_fdc(int drive, int arg, bool interruptible)
 {
 	int ret;
 
-	if (lock_fdc(drive, interruptible))
+	if (lock_fdc(drive))
 		return -EINTR;
 
 	if (arg == FD_RESET_ALWAYS)
@@ -3251,7 +3254,7 @@ static int set_geometry(unsigned int cmd, struct floppy_struct *g,
 		if (!capable(CAP_SYS_ADMIN))
 			return -EPERM;
 		mutex_lock(&open_lock);
-		if (lock_fdc(drive, true)) {
+		if (lock_fdc(drive)) {
 			mutex_unlock(&open_lock);
 			return -EINTR;
 		}
@@ -3271,7 +3274,7 @@ static int set_geometry(unsigned int cmd, struct floppy_struct *g,
 	} else {
 		int oldStretch;
 
-		if (lock_fdc(drive, true))
+		if (lock_fdc(drive))
 			return -EINTR;
 		if (cmd != FDDEFPRM) {
 			/* notice a disk change immediately, else
@@ -3357,7 +3360,7 @@ static int get_floppy_geometry(int drive, int type, struct floppy_struct **g)
 	if (type)
 		*g = &floppy_type[type];
 	else {
-		if (lock_fdc(drive, false))
+		if (lock_fdc(drive))
 			return -EINTR;
 		if (poll_drive(false, 0) == -EINTR)
 			return -EINTR;
@@ -3459,7 +3462,7 @@ static int fd_locked_ioctl(struct block_device *bdev, fmode_t mode, unsigned int
 		if (UDRS->fd_ref != 1)
 			/* somebody else has this drive open */
 			return -EBUSY;
-		if (lock_fdc(drive, true))
+		if (lock_fdc(drive))
 			return -EINTR;
 
 		/* do the actual eject. Fails on
@@ -3471,7 +3474,7 @@ static int fd_locked_ioctl(struct block_device *bdev, fmode_t mode, unsigned int
 		process_fd_request();
 		return ret;
 	case FDCLRPRM:
-		if (lock_fdc(drive, true))
+		if (lock_fdc(drive))
 			return -EINTR;
 		current_type[drive] = NULL;
 		floppy_sizes[drive] = MAX_DISK_SIZE << 1;
@@ -3496,7 +3499,7 @@ static int fd_locked_ioctl(struct block_device *bdev, fmode_t mode, unsigned int
 		UDP->flags &= ~FTD_MSG;
 		return 0;
 	case FDFMTBEG:
-		if (lock_fdc(drive, true))
+		if (lock_fdc(drive))
 			return -EINTR;
 		if (poll_drive(true, FD_RAW_NEED_DISK) == -EINTR)
 			return -EINTR;
@@ -3513,7 +3516,7 @@ static int fd_locked_ioctl(struct block_device *bdev, fmode_t mode, unsigned int
 		return do_format(drive, &inparam.f);
 	case FDFMTEND:
 	case FDFLUSH:
-		if (lock_fdc(drive, true))
+		if (lock_fdc(drive))
 			return -EINTR;
 		return invalidate_drive(bdev);
 	case FDSETEMSGTRESH:
@@ -3539,7 +3542,7 @@ static int fd_locked_ioctl(struct block_device *bdev, fmode_t mode, unsigned int
 		outparam = UDP;
 		break;
 	case FDPOLLDRVSTAT:
-		if (lock_fdc(drive, true))
+		if (lock_fdc(drive))
 			return -EINTR;
 		if (poll_drive(true, FD_RAW_NEED_DISK) == -EINTR)
 			return -EINTR;
@@ -3562,7 +3565,7 @@ static int fd_locked_ioctl(struct block_device *bdev, fmode_t mode, unsigned int
 	case FDRAWCMD:
 		if (type)
 			return -EINVAL;
-		if (lock_fdc(drive, true))
+		if (lock_fdc(drive))
 			return -EINTR;
 		set_floppy(drive);
 		i = raw_cmd_ioctl(cmd, (void __user *)param);
@@ -3571,7 +3574,7 @@ static int fd_locked_ioctl(struct block_device *bdev, fmode_t mode, unsigned int
 		process_fd_request();
 		return i;
 	case FDTWADDLE:
-		if (lock_fdc(drive, true))
+		if (lock_fdc(drive))
 			return -EINTR;
 		twaddle();
 		process_fd_request();
@@ -3798,7 +3801,7 @@ static int compat_getdrvstat(int drive, bool poll,
 	mutex_lock(&floppy_mutex);
 
 	if (poll) {
-		if (lock_fdc(drive, true))
+		if (lock_fdc(drive))
 			goto Eintr;
 		if (poll_drive(true, FD_RAW_NEED_DISK) == -EINTR)
 			goto Eintr;
@@ -4105,7 +4108,8 @@ static unsigned int floppy_check_events(struct gendisk *disk,
 		return DISK_EVENT_MEDIA_CHANGE;
 
 	if (time_after(jiffies, UDRS->last_checked + UDP->checkfreq)) {
-		lock_fdc(drive, false);
+		if (lock_fdc(drive))
+			return -EINTR;
 		poll_drive(false, 0);
 		process_fd_request();
 	}
@@ -4204,7 +4208,9 @@ static int floppy_revalidate(struct gendisk *disk)
 			 "VFS: revalidate called on non-open device.\n"))
 			return -EFAULT;
 
-		lock_fdc(drive, false);
+		res = lock_fdc(drive);
+		if (res)
+			return res;
 		cf = (test_bit(FD_DISK_CHANGED_BIT, &UDRS->flags) ||
 		      test_bit(FD_VERIFY_BIT, &UDRS->flags));
 		if (!(cf || test_bit(drive, &fake_change) || drive_no_geom(drive))) {
