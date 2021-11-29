@@ -1527,7 +1527,7 @@ static int play_rate_dbgfs_write(void *data, u64 val)
 	return 0;
 }
 
-DEFINE_DEBUGFS_ATTRIBUTE(play_rate_debugfs_ops,  play_rate_dbgfs_read,
+DEFINE_SIMPLE_ATTRIBUTE(play_rate_debugfs_ops,  play_rate_dbgfs_read,
 		play_rate_dbgfs_write, "%llu\n");
 
 static int vmax_dbgfs_read(void *data, u64 *val)
@@ -1551,7 +1551,7 @@ static int vmax_dbgfs_write(void *data, u64 val)
 	return 0;
 }
 
-DEFINE_DEBUGFS_ATTRIBUTE(vmax_debugfs_ops, vmax_dbgfs_read,
+DEFINE_SIMPLE_ATTRIBUTE(vmax_debugfs_ops, vmax_dbgfs_read,
 		vmax_dbgfs_write, "%llu\n");
 
 static int wf_repeat_n_dbgfs_read(void *data, u64 *val)
@@ -1580,7 +1580,7 @@ static int wf_repeat_n_dbgfs_write(void *data, u64 val)
 	return 0;
 }
 
-DEFINE_DEBUGFS_ATTRIBUTE(wf_repeat_n_debugfs_ops,  wf_repeat_n_dbgfs_read,
+DEFINE_SIMPLE_ATTRIBUTE(wf_repeat_n_debugfs_ops,  wf_repeat_n_dbgfs_read,
 		wf_repeat_n_dbgfs_write, "%llu\n");
 
 static int wf_s_repeat_n_dbgfs_read(void *data, u64 *val)
@@ -1609,7 +1609,7 @@ static int wf_s_repeat_n_dbgfs_write(void *data, u64 val)
 	return 0;
 }
 
-DEFINE_DEBUGFS_ATTRIBUTE(wf_s_repeat_n_debugfs_ops,  wf_s_repeat_n_dbgfs_read,
+DEFINE_SIMPLE_ATTRIBUTE(wf_s_repeat_n_debugfs_ops,  wf_s_repeat_n_dbgfs_read,
 		wf_s_repeat_n_dbgfs_write, "%llu\n");
 
 static int auto_res_dbgfs_read(void *data, u64 *val)
@@ -1630,7 +1630,7 @@ static int auto_res_dbgfs_write(void *data, u64 val)
 	return 0;
 }
 
-DEFINE_DEBUGFS_ATTRIBUTE(auto_res_debugfs_ops,  auto_res_dbgfs_read,
+DEFINE_SIMPLE_ATTRIBUTE(auto_res_debugfs_ops,  auto_res_dbgfs_read,
 		auto_res_dbgfs_write, "%llu\n");
 
 #define WF_SRC_BYTES	12
