@@ -1,5 +1,5 @@
 #include "whyred-pm660.dtsi"
-#include "whyred-haptics.dtsi"
+#include "whyred-qtihaptics.dtsi"
 #include "whyred-audio.dtsi"
 #include "whyred-camera.dtsi"
 #include "whyred-mdss.dtsi"

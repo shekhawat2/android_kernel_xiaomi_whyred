@@ -48,6 +48,7 @@ export BUILD_TIME=$(date +"%Y%m%d-%T")
 export KERNELZIP=${ANYKERNEL_DIR}/KCUFKernel-whyred-EAS-${BUILD_TIME}.zip
 export BUILTIMAGE=${OUT_DIR}/arch/arm64/boot/Image
 export BUILTDTB=${OUT_DIR}/arch/arm64/boot/dts/qcom/whyred.dtb
+export BUILTDTBQTI=${OUT_DIR}/arch/arm64/boot/dts/qcom/whyred_qtihap.dtb
 }
 
 clean_up() {
@@ -77,6 +78,7 @@ move_files() {
 echo -e "${blue}Movings Files${nocol}"
 xz -c ${OUT_DIR}/Image > ${ANYKERNEL_DIR}/Image.xz
 xz -c ${BUILTDTB} > ${ANYKERNEL_DIR}/kernel_dtb.xz
+xz -c ${BUILTDTBQTI} > ${ANYKERNEL_DIR}/kernel_dtbqti.xz
 }
 
 make_zip() {
@@ -92,8 +94,13 @@ gdrive upload --share ${KERNELZIP}
 }
 
 enable_defconfig() {
-echo -e "${blue}Disabling ${1}${nocol}"
+echo -e "${blue}Enabling ${1}${nocol}"
 ${KERNEL_DIR}/scripts/config --file ${OUT_DIR}/.config -e $1
+}
+
+disable_defconfig() {
+echo -e "${blue}Disabling ${1}${nocol}"
+${KERNEL_DIR}/scripts/config --file ${OUT_DIR}/.config -d $1
 }
 
 export_vars
@@ -102,7 +109,11 @@ if [ $type == clean ]; then
 clean_up
 fi
 build whyred_defconfig
+disable_defconfig CONFIG_INPUT_QTI_HAPTICS #one
 build dtbs
+enable_defconfig CONFIG_INPUT_QTI_HAPTICS #keepit
+build dtbs
+disable_defconfig CONFIG_XIAOMI_NEW_CAMERA_BLOBS #safe
 build Image
 if [ $type == dirty ]; then
 echo "Dirty Build Complete"
@@ -114,7 +125,7 @@ else
 echo "Image Build Failed"
 exit 1
 fi
-enable_defconfig CONFIG_XIAOMI_NEW_CAMERA_BLOBS
+enable_defconfig CONFIG_XIAOMI_NEW_CAMERA_BLOBS #fine
 build Image
 if [ ! -f ${BUILTIMAGE} ]; then
 echo "Image Build Failed"

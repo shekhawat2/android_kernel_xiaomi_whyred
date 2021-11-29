@@ -214,6 +214,7 @@ dtb-$(CONFIG_ARCH_MSMHAMSTER) += msmhamster-rumi.dtb
 
 ifeq ($(CONFIG_KERNEL_CUSTOM_E7S),y)
 dtb-$(CONFIG_ARCH_SDM660) := whyred.dtb
+dtb-$(CONFIG_INPUT_QTI_HAPTICS) := whyred_qtihap.dtb
 else
 dtb-$(CONFIG_ARCH_SDM660) += sdm660-sim.dtb \
 	sdm660-internal-codec-cdp.dtb \
