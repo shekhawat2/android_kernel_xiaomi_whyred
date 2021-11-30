@@ -1385,8 +1385,8 @@ static void qpnp_flashlight_led_brightness_set(struct led_classdev *led_cdev,
 				pr_debug(" switch name[%d] = %s, snode name[%d] = %s\n",i, flashlight_data->switch_name[i],j, led->snode[j].cdev.name);
 				if(!strcmp(flashlight_data->switch_name[i], led->snode[j].cdev.name)) {
 					rc = qpnp_flash_led_switch_set(&led->snode[j], false);
-				if (rc < 0)
-					pr_err("Failed to set flash LED switch rc=%d\n", rc);
+					if (rc < 0)
+						pr_err("Failed to set flash LED switch rc=%d\n", rc);
 					break;
 				}
 			}
@@ -1405,8 +1405,8 @@ static void qpnp_flashlight_led_brightness_set(struct led_classdev *led_cdev,
 				pr_debug(" switch name[%d] = %s, snode name[%d] = %s\n",i, flashlight_data->switch_name[i],j, led->snode[j].cdev.name);
 				if(!strcmp(flashlight_data->switch_name[i], led->snode[j].cdev.name)) {
 					rc = qpnp_flash_led_switch_set(&led->snode[j], value > 0);
-				if (rc < 0)
-					pr_err("Failed to set flash LED switch rc=%d\n", rc);
+					if (rc < 0)
+						pr_err("Failed to set flash LED switch rc=%d\n", rc);
 					break;
 				}
 			}
