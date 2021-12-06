@@ -175,6 +175,7 @@ gen_headers_out_arm = [
     "linux/blktrace_api.h",
     "linux/bpf.h",
     "linux/bpf_common.h",
+    "linux/bpf_perf_event.h",
     "linux/bpqether.h",
     "linux/bsg.h",
     "linux/btrfs.h",
