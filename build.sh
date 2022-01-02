@@ -19,7 +19,7 @@ fi
 setup_env() {
 if [ ! -d $CLANG_DIR ]; then
     echo "clang directory does not exists, cloning now..."
-    git clone git@github.com:kdrag0n/proton-clang ../pclang --depth 1
+    git clone git@github.com:shekhawat2/clang-builds ../clang-builds --depth 1
 fi
 if [ ! -d $ANYKERNEL_DIR ]; then
     echo "anykernel directory does not exists, cloning now..."
@@ -38,7 +38,7 @@ export KERNEL_DIR=${PWD}
 export KBUILD_BUILD_USER="Shekhawat2"
 export KBUILD_BUILD_HOST="Builder"
 export ARCH=arm64
-export CLANG_DIR=${KERNEL_DIR}/../pclang
+export CLANG_DIR=${KERNEL_DIR}/../clang-builds
 export OUT_DIR=${KERNEL_DIR}/out
 export ANYKERNEL_DIR=${KERNEL_DIR}/../anykernel
 export KERNELBUILDS_DIR=${KERNEL_DIR}/../kernelbuilds
