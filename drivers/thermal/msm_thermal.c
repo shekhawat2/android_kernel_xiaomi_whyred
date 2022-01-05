@@ -6713,8 +6713,8 @@ static int probe_cc(struct device_node *node, struct msm_thermal_data *data,
 	int ret = 0;
 
 	if (num_possible_cpus() > 1) {
-		core_control_enabled = 1;
-		hotplug_enabled = 1;
+		core_control_enabled = 0;
+		hotplug_enabled = 0;
 	}
 
 	key = "qcom,online-hotplug-core";
