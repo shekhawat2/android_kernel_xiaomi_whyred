@@ -704,7 +704,7 @@ static int smb1351_fastchg_current_set(struct smb1351_charger *chip,
 		(fastchg_current > SMB1351_CHG_FAST_MAX_MA)) {
 		pr_err("bad pre_fastchg current mA=%d asked to set\n",
 					fastchg_current);
-		return -EINVAL;
+
 	}
 
 	/*
@@ -1429,9 +1429,8 @@ static int smb1351_parallel_set_chg_suspend(struct smb1351_charger *chip,
 	if (chip->parallel_charger_suspended == suspend) {
 		pr_err("Skip same state request suspended = %d suspend=%d\n",
 				chip->parallel_charger_suspended, !suspend);
-		return 0;
-	}
 
+	}
 	pr_err("smb1351 chip->parallel_charger_suspended = %d,request suspend=%d\n",
 				chip->parallel_charger_suspended, suspend);
 	if (!suspend) {
