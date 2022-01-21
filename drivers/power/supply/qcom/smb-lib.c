@@ -27,6 +27,7 @@
 #include "storm-watch.h"
 #include "fg-core.h"
 
+extern int hwc_check_global;
 #ifdef CONFIG_KERNEL_CUSTOM_E7S
 #define LCT_JEITA_CCC_AUTO_ADJUST  1
 #else
@@ -2022,6 +2023,13 @@ int smblib_set_prop_batt_capacity(struct smb_charger *chg,
 	return 0;
 }
 
+#ifdef THERMAL_CONFIG_FB
+extern union power_supply_propval lct_therm_lvl_reserved;
+extern bool lct_backlight_off;
+extern int LctIsInCall;
+extern int LctThermal;
+extern int hwc_check_india;
+#endif
 int smblib_set_prop_system_temp_level(struct smb_charger *chg,
 				const union power_supply_propval *val)
 {
@@ -2034,10 +2042,58 @@ int smblib_set_prop_system_temp_level(struct smb_charger *chg,
 	if (val->intval > chg->thermal_levels)
 		return -EINVAL;
 
+	#ifdef THERMAL_CONFIG_FB
+	pr_err("smblib_set_prop_system_temp_level val=%d, chg->system_temp_level=%d, LctThermal=%d, lct_backlight_off= %d, IsInCall=%d, hwc_check_india=%d\n ", 
+		val->intval,chg->system_temp_level, LctThermal, lct_backlight_off, LctIsInCall, hwc_check_india);
+
+	if (LctThermal == 0) {
+		lct_therm_lvl_reserved.intval = val->intval;
+	}
+#if defined(CONFIG_KERNEL_CUSTOM_E7S)
+		if (hwc_check_india == 1) {
+		if ((lct_backlight_off) && (LctIsInCall == 0) && (val->intval > 2)) {
+		    return 0;
+		}
+	}
+	else {
+		if ((lct_backlight_off) && (LctIsInCall == 0) && (val->intval > 1)) {
+		    return 0;
+		}
+	}
+#else
+	if ((lct_backlight_off) && (LctIsInCall == 0) && (val->intval > 0) && (hwc_check_india == 0)) {
+	    return 0;
+	}
+	if ((lct_backlight_off) && (LctIsInCall == 0) && (val->intval > 1) && (hwc_check_india == 1)) {
+	    return 0;
+	}
+#endif
+#if defined(CONFIG_KERNEL_CUSTOM_E7S)
+	if ((LctIsInCall == 1) && (val->intval != 4)) {
+			return 0;
+		}
+#endif
+	if (val->intval == chg->system_temp_level)
+		return 0;
+	#endif
+
 	chg->system_temp_level = val->intval;
 	/* disable parallel charge in case of system temp level */
-	vote(chg->pl_disable_votable, THERMAL_DAEMON_VOTER,
-		chg->system_temp_level ? true : false, 0);
+	if((lct_backlight_off == 0) && (chg->system_temp_level <= 1))
+	{
+		vote(chg->pl_disable_votable, THERMAL_DAEMON_VOTER,false,0);
+	}
+#if defined(CONFIG_KERNEL_CUSTOM_E7S)
+	else if((hwc_check_india == 0) && (chg->system_temp_level <= 2))
+	{
+		vote(chg->pl_disable_votable, THERMAL_DAEMON_VOTER,false,0);
+	}
+#endif
+	else
+	{
+		vote(chg->pl_disable_votable, THERMAL_DAEMON_VOTER,
+			chg->system_temp_level ? true : false, 0);
+	}
 
 	if (chg->system_temp_level == chg->thermal_levels)
 		return vote(chg->chg_disable_votable,

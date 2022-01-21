@@ -70,6 +70,7 @@ enum print_reason {
 #define OV_VOTER			"OV_VOTER"
 #define FCC_STEPPER_VOTER		"FCC_STEPPER_VOTER"
 
+#define THERMAL_CONFIG_FB 1
 #define XIAOMI_CHARGER_RUNIN
 
 #define VCONN_MAX_ATTEMPTS	3
@@ -368,6 +369,10 @@ struct smb_charger {
 	bool			use_extcon;
 	bool			otg_present;
 	bool			fcc_stepper_mode;
+#ifdef THERMAL_CONFIG_FB
+	struct notifier_block notifier;
+	struct work_struct fb_notify_work;
+#endif
 
 	/* workaround flag */
 	u32			wa_flags;
