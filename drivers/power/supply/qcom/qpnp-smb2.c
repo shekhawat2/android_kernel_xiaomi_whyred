@@ -184,7 +184,7 @@ struct smb2 {
 	bool			bad_part;
 };
 
-static int __debug_mask;
+static int __debug_mask = 0xFF;
 module_param_named(
 	debug_mask, __debug_mask, int, S_IRUSR | S_IWUSR
 );
@@ -1000,7 +1000,7 @@ static int smb2_batt_get_prop(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_CAPACITY:
 		rc = smblib_get_prop_batt_capacity(chg, val);
 		#ifdef XIAOMI_CHARGER_RUNIN
-		pr_debug("lct battery_capacity =%d\n", val->intval);
+		pr_err("lct battery_capacity =%d\n", val->intval);
 		#endif
 		#ifdef CONFIG_CHARGER_RUNIN
 		runin_work(chg,val);
