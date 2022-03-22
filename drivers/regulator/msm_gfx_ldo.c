@@ -1419,38 +1419,6 @@ static const struct file_operations msm_gfx_ldo_debug_info_fops = {
 	.read = msm_gfx_ldo_debug_info_read,
 };
 
-static void msm_gfx_ldo_debugfs_init(struct msm_gfx_ldo *ldo_vreg)
-{
-	struct dentry *temp;
-
-	ldo_vreg->debugfs = debugfs_create_dir("msm_gfx_ldo", NULL);
-	if (!ldo_vreg->debugfs) {
-		pr_err("Couldn't create debug dir\n");
-		return;
-	}
-
-	temp = debugfs_create_file("debug_info", 0444, ldo_vreg->debugfs,
-					ldo_vreg, &msm_gfx_ldo_debug_info_fops);
-	if (IS_ERR_OR_NULL(temp)) {
-		pr_err("debug_info node creation failed\n");
-		return;
-	}
-
-	temp = debugfs_create_file("ldo_voltage", 0644, ldo_vreg->debugfs,
-					ldo_vreg, &ldo_voltage_fops);
-	if (IS_ERR_OR_NULL(temp)) {
-		pr_err("ldo_voltage node creation failed\n");
-		return;
-	}
-
-	temp = debugfs_create_file("ldo_mode_disable", 0644, ldo_vreg->debugfs,
-					ldo_vreg, &ldo_mode_disable_fops);
-	if (IS_ERR_OR_NULL(temp)) {
-		pr_err("ldo_mode_disable node creation failed\n");
-		return;
-	}
-}
-
 static void msm_gfx_ldo_debugfs_remove(struct msm_gfx_ldo *ldo_vreg)
 {
 	debugfs_remove_recursive(ldo_vreg->debugfs);
@@ -1595,8 +1563,9 @@ static int msm_gfx_ldo_probe(struct platform_device *pdev)
 		return rc;
 	}
 
+#ifdef CONFIG_DEBUG_FS
 	msm_gfx_ldo_debugfs_init(ldo_vreg);
-
+#endif
 	return 0;
 }
 
