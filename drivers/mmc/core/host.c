@@ -477,6 +477,7 @@ struct mmc_host *mmc_alloc_host(int extra, struct device *dev)
 }
 EXPORT_SYMBOL(mmc_alloc_host);
 
+<<<<<<< HEAD
 static ssize_t enable_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -625,6 +626,18 @@ static struct attribute_group clk_scaling_attr_grp = {
 	.attrs = clk_scaling_attrs,
 };
 
+=======
+static int mmc_validate_host_caps(struct mmc_host *host)
+{
+	if (host->caps & MMC_CAP_SDIO_IRQ && !host->ops->enable_sdio_irq) {
+		dev_warn(host->parent, "missing ->enable_sdio_irq() ops\n");
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+>>>>>>> 3de175181c26c3125b62ef771d54cb0bc997c489
 /**
  *	mmc_add_host - initialise host hardware
  *	@host: mmc host
@@ -637,8 +650,9 @@ int mmc_add_host(struct mmc_host *host)
 {
 	int err;
 
-	WARN_ON((host->caps & MMC_CAP_SDIO_IRQ) &&
-		!host->ops->enable_sdio_irq);
+	err = mmc_validate_host_caps(host);
+	if (err)
+		return err;
 
 	err = device_add(&host->class_dev);
 	if (err)
