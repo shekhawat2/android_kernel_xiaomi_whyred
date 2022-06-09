@@ -19,25 +19,6 @@
 	};
 };
 
-&firmware {
-	android {
-		fstab {
-			vendor {
-				fsmgr_flags = "wait";
-			};
-
-			system {
-				compatible = "android,system";
-				dev = "/dev/block/platform/soc/c0c4000.sdhci/by-name/system";
-				type = "ext4";
-				mnt_flags = "ro,barrier=1,discard";
-				fsmgr_flags = "wait";
-				status = "ok";
-			};
-		};
-	};
-};
-
 &qcom_seecom {
 	/delete-property/ qcom,fde-key-size;
 	qcom,qsee-reentrancy-support = <0>;
