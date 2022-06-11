@@ -88,14 +88,18 @@ ${KERNEL_DIR}/scripts/config --file ${OUT_DIR}/.config -d $1
 export_vars && setup_env
 clean_up
 build vendor/whyred_defconfig
+if [ x$1 == xgz ]; then
+build
+else
 build dtbs && build Image
+fi
 if [ -f ${BUILTIMAGE} ]; then
 mv ${BUILTIMAGE} ${OUT_DIR}/Image
 else
 echo "Image Build Failed"
 exit 1
 fi
-if [ $1 == c ]; then
+if [ x$1 == xc ]; then
 move_files && make_zip
 upload_gdrive
 fi
