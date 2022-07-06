@@ -96,7 +96,7 @@ int rpm_regulator_set_voltage(struct rpm_regulator *regulator, int min_uV,
 int rpm_regulator_set_mode(struct rpm_regulator *regulator,
 				enum rpm_regulator_mode mode);
 
-int __init rpm_smd_regulator_driver_init(void);
+int rpm_smd_regulator_driver_init(void);
 
 #else
 
@@ -117,7 +117,7 @@ static inline int rpm_regulator_set_voltage(struct rpm_regulator *regulator,
 static inline int rpm_regulator_set_mode(struct rpm_regulator *regulator,
 				enum rpm_regulator_mode mode) { return 0; }
 
-static inline int __init rpm_smd_regulator_driver_init(void) { return 0; }
+static inline int rpm_smd_regulator_driver_init(void) { return 0; }
 
 #endif /* CONFIG_REGULATOR_RPM_SMD */
 #endif
