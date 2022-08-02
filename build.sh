@@ -93,11 +93,8 @@ build
 else
 build dtbs && build Image
 fi
-if [ -f ${BUILTIMAGE} ]; then
-mv ${BUILTIMAGE} ${OUT_DIR}/Image
-else
-echo "Image Build Failed"
-exit 1
+if [ ! -f ${BUILTIMAGE} ]; then
+echo "Image Build Failed" && exit 1
 fi
 if [ x$1 == xc ]; then
 move_files && make_zip
