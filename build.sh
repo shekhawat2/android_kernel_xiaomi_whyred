@@ -59,7 +59,7 @@ echo -e "${yellow}$1 Build completed in $(($DIFF / 60)) minute(s) and $(($DIFF %
 
 move_files() {
 echo -e "${blue}Movings Files${nocol}"
-xz -ck ${OUT_DIR}/Image > ${ANYKERNEL_DIR}/Image.xz
+xz -ck ${BUILTIMAGE} > ${ANYKERNEL_DIR}/Image.xz
 xz -ck ${BUILTDTB} > ${ANYKERNEL_DIR}/kernel_dtb.xz
 }
 
