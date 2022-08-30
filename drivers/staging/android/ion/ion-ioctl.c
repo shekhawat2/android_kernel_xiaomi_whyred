@@ -48,6 +48,8 @@ static unsigned int ion_ioctl_dir(unsigned int cmd)
 	switch (cmd) {
 #ifdef CONFIG_ION_LEGACY
 	case ION_IOC_FREE:
+	case ION_IOC_CUSTOM:
+	case ION_IOC_SYNC:
 		return _IOC_WRITE;
 #endif
 	default:
@@ -161,6 +163,14 @@ long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		break;
 	case ION_IOC_IMPORT:
 		data.fd.handle = data.fd.fd;
+		break;
+	case ION_IOC_SYNC:
+		ret = ion_sync_for_device(data.fd.fd);
+		break;
+	case ION_IOC_CUSTOM:
+	case ION_IOC_CLEAN_CACHES:
+	case ION_IOC_INV_CACHES:
+	case ION_IOC_CLEAN_INV_CACHES:
 		break;
 #endif
 	default:
