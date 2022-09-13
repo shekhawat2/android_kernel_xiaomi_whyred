@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 blue='\033[0;34m'
 cyan='\033[0;36m'
 yellow='\033[0;33m'
@@ -32,12 +33,15 @@ export BUILD_TIME=$(date +"%Y%m%d-%T")
 export KERNELZIP=${ANYKERNEL_DIR}/KCUFKernel-whyred-4.19-${BUILD_TIME}.zip
 export BUILTIMAGE=${OUT_DIR}/arch/arm64/boot/Image
 export BUILTDTB=${OUT_DIR}/arch/arm64/boot/dts/vendor/qcom/whyred.dtb
+export BUILTFSTABDTB=${OUT_DIR}/arch/arm64/boot/dts/vendor/qcom/whyred_fstab.dtb
+export BSDIFF=${KERNEL_DIR}/bin/bsdiff
 }
 
 clean_up() {
 echo -e "${cyan}Cleaning Up ${nocol}"
 rm -rf ${ANYKERNEL_DIR}/Image* ${ANYKERNEL_DIR}/kernel_dtb*
-rm -rf ${ANYKERNEL_DIR}/*.xz ${ANYKERNEL_DIR}/*.zip ${ANYKERNEL_DIR}/bspatch/*
+rm -rf ${ANYKERNEL_DIR}/*.xz ${ANYKERNEL_DIR}/*.zip
+rm -rf ${ANYKERNEL_DIR}/bspatch && mkdir -p ${ANYKERNEL_DIR}/bspatch
 }
 
 build() {
@@ -61,6 +65,7 @@ move_files() {
 echo -e "${blue}Movings Files${nocol}"
 xz -ck ${BUILTIMAGE} > ${ANYKERNEL_DIR}/Image.xz
 xz -ck ${BUILTDTB} > ${ANYKERNEL_DIR}/kernel_dtb.xz
+$BSDIFF $BUILTDTB $BUILTFSTABDTB ${ANYKERNEL_DIR}/bspatch/dtb_fstab
 }
 
 make_zip() {
@@ -89,14 +94,16 @@ export_vars && setup_env
 clean_up
 build vendor/whyred_defconfig
 if [ x$1 == xgz ]; then
-build
+    build
 else
-build dtbs && build Image
+    build dtbs && build Image
 fi
 if [ ! -f ${BUILTIMAGE} ]; then
 echo "Image Build Failed" && exit 1
 fi
 if [ x$1 == xc ]; then
-move_files && make_zip
-upload_gdrive
+    enable_defconfig CONFIG_DYNAMIC_WHYRED
+    build dtbs
+    move_files && make_zip
+    upload_gdrive
 fi

@@ -1681,3 +1681,7 @@ source "arch/arm64/crypto/Kconfig"
 endif
 
 source "techpack/Kconfig"
+
+config DYNAMIC_WHYRED
+	bool "Support Dynamic Partitions"
+	default y
