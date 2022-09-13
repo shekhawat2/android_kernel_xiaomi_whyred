@@ -278,3 +278,7 @@ config MSM_SEC_CCI_DEBUG
 	help
 	  Enables simulation of secure camera for Secure CCI Realy
 	  debugging.
+
+config NEWCAM_BLOBS
+	bool "Whyred New Camera Blobs"
+	default y

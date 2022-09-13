@@ -231,9 +231,11 @@ int msm_sensor_match_vendor_id(struct msm_sensor_ctrl_t *s_ctrl)
 	const char *sensor_name;
 	uint16_t temp_sid = 0;
 	uint16_t vcmid = 0;
-	uint16_t lensid = 0;
 	int have_vcmid = 0;
+#ifdef CONFIG_NEWCAM_BLOBS
+	uint16_t lensid = 0;
 	int have_lensid = 0;
+#endif
 	enum cci_i2c_master_t temp_master = MASTER_0;
 
 
@@ -289,6 +291,7 @@ int msm_sensor_match_vendor_id(struct msm_sensor_ctrl_t *s_ctrl)
 		have_vcmid = 1;
 	}
 
+#ifdef CONFIG_NEWCAM_BLOBS
 	if (s_ctrl->sensordata->lens_id_info->lens_id_addr != 0) {
 	    msm_camera_cci_i2c_read(
 		sensor_i2c_client,
@@ -297,6 +300,7 @@ int msm_sensor_match_vendor_id(struct msm_sensor_ctrl_t *s_ctrl)
 		s_ctrl->sensordata->lens_id_info->data_type);
 		have_lensid = 1;
 	}
+#endif
 
 	sensor_i2c_client->cci_client->sid = temp_sid;
 	sensor_i2c_client->cci_client->cci_i2c_master = temp_master;
@@ -323,6 +327,7 @@ int msm_sensor_match_vendor_id(struct msm_sensor_ctrl_t *s_ctrl)
 				__func__, vcmid, s_ctrl->sensordata->vcm_id_info->vcm_id);
 			}
 		}
+#ifdef CONFIG_NEWCAM_BLOBS
 		if(have_lensid == 1) {
 			if (s_ctrl->sensordata->lens_id_info->lens_id != lensid) {
 				pr_err("%s:match lensid if failed read lens id: 0x%x expected id 0x%x:\n",
@@ -334,6 +339,7 @@ int msm_sensor_match_vendor_id(struct msm_sensor_ctrl_t *s_ctrl)
 				__func__, lensid, s_ctrl->sensordata->lens_id_info->lens_id);
 			}
 		}
+#endif
 
 	}
 	pr_err("%s: read vendor id: 0x%x expected id 0x%x:\n",
