@@ -281,4 +281,4 @@ config MSM_SEC_CCI_DEBUG
 
 config NEWCAM_BLOBS
 	bool "Whyred New Camera Blobs"
-	default y
+	default n
