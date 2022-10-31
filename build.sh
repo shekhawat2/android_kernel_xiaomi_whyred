@@ -75,10 +75,6 @@ make_zip() {
     cd -
 }
 
-upload_gdrive() {
-    gdrive upload --share ${KERNELZIP}
-}
-
 enable_defconfig() {
     echo -e "${blue}Enabling ${1}${nocol}"
     ${KERNEL_DIR}/scripts/config --file ${OUT_DIR}/.config -e $1
@@ -112,5 +108,5 @@ if [ x$1 == xc ]; then
     build Image
     $BSDIFF ${OUT_DIR}/Image ${BUILTIMAGE} ${ANYKERNEL_DIR}/bspatch/cam_newblobs
     make_zip
-    upload_gdrive
+    mv ${KERNELZIP} /var/www/files
 fi
