@@ -7,19 +7,6 @@ red='\033[0;31m'
 nocol='\033[0m'
 
 setup_env() {
-    if [ ! -d $CLANG_DIR ]; then
-        echo "clang directory does not exists, cloning now..."
-        git clone git@gitlab.com:Shekhawat2/clang-builds ${CLANG_DIR} --depth 1
-    fi
-    if [ ! -d $ANYKERNEL_DIR ]; then
-        echo "anykernel directory does not exists, cloning now..."
-        git clone git@github.com:shekhawat2/AnyKernel3 -b whyred_419 ../anykernel
-    fi
-    export PATH=${CLANG_DIR}/bin:${KERNEL_DIR}/bin:${PATH}
-    export KBUILD_COMPILER_STRING=$(${CLANG_DIR}/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
-}
-
-export_vars() {
     export KERNEL_DIR=${PWD}
     export KBUILD_BUILD_USER="Shekhawat2"
     export KBUILD_BUILD_HOST="Builder"
@@ -35,6 +22,18 @@ export_vars() {
     export BUILTDTB=${OUT_DIR}/arch/arm64/boot/dts/vendor/qcom/whyred.dtb
     export BUILTFSTABDTB=${OUT_DIR}/arch/arm64/boot/dts/vendor/qcom/whyred_fstab.dtb
     export BSDIFF=${KERNEL_DIR}/bin/bsdiff
+
+    if [ ! -d $CLANG_DIR ]; then
+        echo "clang directory does not exists, cloning now..."
+        git clone https://gitlab.com/shekhawat2/clang-builds.git -b master ${CLANG_DIR} --depth 1
+    fi
+    if [ ! -d $ANYKERNEL_DIR ]; then
+        echo "anykernel directory does not exists, cloning now..."
+        git clone https://github.com/shekhawat2/AnyKernel3.git -b whyred_419 ${ANYKERNEL_DIR}
+    fi
+
+    export PATH=${CLANG_DIR}/bin:${KERNEL_DIR}/bin:${PATH}
+    export KBUILD_COMPILER_STRING=$(${CLANG_DIR}/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
 }
 
 clean_up() {
@@ -75,10 +74,6 @@ make_zip() {
     cd -
 }
 
-upload_gdrive() {
-    gdrive upload --share ${KERNELZIP}
-}
-
 enable_defconfig() {
     echo -e "${blue}Enabling ${1}${nocol}"
     ${KERNEL_DIR}/scripts/config --file ${OUT_DIR}/.config -e $1
@@ -89,8 +84,7 @@ disable_defconfig() {
     ${KERNEL_DIR}/scripts/config --file ${OUT_DIR}/.config -d $1
 }
 
-export_vars && setup_env
-clean_up
+setup_env && clean_up
 build vendor/whyred_defconfig
 disable_defconfig CONFIG_NEWCAM_BLOBS
 enable_defconfig CONFIG_DYNAMIC_WHYRED
@@ -112,5 +106,4 @@ if [ x$1 == xc ]; then
     build Image
     $BSDIFF ${OUT_DIR}/Image ${BUILTIMAGE} ${ANYKERNEL_DIR}/bspatch/cam_newblobs
     make_zip
-    upload_gdrive
 fi
