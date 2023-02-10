@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 blue='\033[0;34m'
 cyan='\033[0;36m'
@@ -16,8 +16,8 @@ setup_env() {
     export ANYKERNEL_DIR=${KERNEL_DIR}/../anykernel
     export JOBS="$(grep -c '^processor' /proc/cpuinfo)"
     export BSDIFF=${KERNEL_DIR}/bin/bsdiff
-    export BUILD_TIME=$(date +"%Y%m%d-%T")
-    export KERNELZIP=${ANYKERNEL_DIR}/KCUFKernel-whyred-4.19-${BUILD_TIME}.zip
+    export BUILD_TIME=$(date +"%Y%m%d-%H%M%S")
+    export KERNELZIP=KCUFKernel-whyred-4.19-${BUILD_TIME}.zip
     export BUILTIMAGE=${OUT_DIR}/arch/arm64/boot/Image
     export BUILTDTB=${OUT_DIR}/arch/arm64/boot/dts/vendor/qcom/whyred.dtb
     export BUILTFSTABDTB=${OUT_DIR}/arch/arm64/boot/dts/vendor/qcom/whyred_fstab.dtb
@@ -69,7 +69,6 @@ move_files() {
 make_zip() {
     cd ${ANYKERNEL_DIR}
     echo -e "${blue}Making Zip${nocol}"
-    BUILD_TIME=$(date +"%Y%m%d-%T")
     zip -r ${KERNELZIP} * > /dev/null
     cd -
 }
@@ -82,6 +81,45 @@ enable_defconfig() {
 disable_defconfig() {
     echo -e "${blue}Disabling ${1}${nocol}"
     ${KERNEL_DIR}/scripts/config --file ${OUT_DIR}/.config -d $1
+}
+
+generate_release_data() {
+    cat <<EOF
+{
+"tag_name":"${BUILD_TIME}",
+"target_commitish":"KCUF_419",
+"name":"KCUFKernel-whyred-4.19-${BUILD_TIME}",
+"body":"${KERNELZIP}",
+"draft":false,
+"prerelease":false,
+"generate_release_notes":false
+}
+EOF
+}
+
+create_release() {
+    url=https://api.github.com/repos/shekhawat2/android_kernel_xiaomi_whyred/releases
+    upload_url=$(curl -s \
+        -H "Accept: application/vnd.github+json" \
+        -H "Authorization: token ${GITHUB_TOKEN}" \
+        $url \
+        -d "$(generate_release_data)" | jq -r .upload_url | cut -d { -f'1')
+}
+
+upload_release_file() {
+    command="curl -s -o /dev/null -w '%{http_code}' \
+        -H 'Authorization: token ${GITHUB_TOKEN}' \
+        -H 'Content-Type: $(file -b --mime-type ${1})' \
+        --data-binary @${1} \
+        ${upload_url}?name=$(basename ${1})"
+
+    http_code=$(eval $command)
+    if [ $http_code == "201" ]; then
+        echo "asset $(basename ${1}) uploaded"
+    else
+        echo "upload failed with code '$http_code'"
+        exit 1
+    fi
 }
 
 setup_env && clean_up
@@ -106,4 +144,6 @@ if [ x$1 == xc ]; then
     build Image
     $BSDIFF ${OUT_DIR}/Image ${BUILTIMAGE} ${ANYKERNEL_DIR}/bspatch/cam_newblobs
     make_zip
+    create_release && echo "$upload_url"
+    upload_release_file ${ANYKERNEL_DIR}/${KERNELZIP}
 fi
