@@ -14,7 +14,7 @@ setup_env() {
     export CLANG_DIR=${KERNEL_DIR}/../clang-builds
     export OUT_DIR=${KERNEL_DIR}/out
     export ANYKERNEL_DIR=${KERNEL_DIR}/../anykernel
-    export JOBS="$(grep -c '^processor' /proc/cpuinfo)"
+    export JOBS="$(nproc --all)"
     export BSDIFF=${KERNEL_DIR}/bin/bsdiff
     export BUILD_TIME=$(date +"%Y%m%d-%H%M%S")
     export KERNELZIP=KCUFKernel-whyred-4.19-${BUILD_TIME}.zip
