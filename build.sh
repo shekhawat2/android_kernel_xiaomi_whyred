@@ -144,6 +144,8 @@ if [ x$1 == xc ]; then
     build Image
     $BSDIFF ${OUT_DIR}/Image ${BUILTIMAGE} ${ANYKERNEL_DIR}/bspatch/cam_newblobs
     make_zip
+fi
+if [ x$1 == xcr ]; then
     create_release && echo "$upload_url"
     upload_release_file ${ANYKERNEL_DIR}/${KERNELZIP}
 fi
