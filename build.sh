@@ -134,7 +134,7 @@ fi
 if [ ! -f ${BUILTIMAGE} ]; then
     echo "Image Build Failed" && exit 1
 fi
-if [ x$1 == xc ]; then
+if [[ x$1 == xc || x$1 == xcr ]]; then
     move_files
     disable_defconfig CONFIG_DYNAMIC_WHYRED
     build dtbs
