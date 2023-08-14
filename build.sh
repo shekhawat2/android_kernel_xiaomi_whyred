@@ -17,7 +17,7 @@ setup_env() {
     export JOBS="$(nproc --all)"
     export BSDIFF=${KERNEL_DIR}/bin/bsdiff
     export BUILD_TIME=$(date +"%Y%m%d-%H%M%S")
-    export KERNELZIP=KCUFKernel-whyred-4.19-${BUILD_TIME}.zip
+    export KERNELZIP=KCUFKernel-whyred-4.19-KSU-${BUILD_TIME}.zip
     export BUILTIMAGE=${OUT_DIR}/arch/arm64/boot/Image
     export BUILTDTB=${OUT_DIR}/arch/arm64/boot/dts/vendor/qcom/whyred.dtb
     export BUILTFSTABDTB=${OUT_DIR}/arch/arm64/boot/dts/vendor/qcom/whyred_fstab.dtb
